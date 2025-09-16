@@ -1,0 +1,101 @@
+&ACCESS RVO2
+&REL 6
+DEF toolControlLib ()
+   ;FOLD PROGRAM INFO --------------------------------------------------------
+      ; Program: toolControlLib
+      ; Description:
+      ; Creation Date: 16/04/2024
+      ; Last Modification Date: 18/04/2024
+      ; Author:   
+      ;           Alexander Kalis
+      ;           Tekniker, C. Iñaki Goenaga, 5, 20600, Gipuzkoa
+      ;           +34 674 05 15 10
+      ;           alexander.kalis@tekniker.es
+      ; Last modification Author: 
+      ;           Alexander Kalis
+      ; Customer: Erreka S. COOP
+   ;ENDFOLD --------------------------------------------------------
+   
+END
+
+GLOBAL DEF  manGripperOpen ()
+   WHILE NOT(bManPinzaAbierta)
+      bManCerrarPinza   =  FALSE
+      bManAbrirPinza    =  TRUE
+   ENDWHILE
+   
+   bManAbrirPinza = FALSE
+END
+
+GLOBAL DEF manGripperClose ()
+   WHILE NOT(bManPinzaCerrada)
+      bManAbrirPinza    =  FALSE
+      bManCerrarPinza   =  TRUE
+   ENDWHILE
+   
+   bManAbrirPinza = FALSE
+END
+
+GLOBAL DEF autGripperOpen ()
+   bPeticionCerrarPinza   = FALSE
+   bPeticionAbrirPinza    = TRUE
+   WAIT FOR bPinzaAbierta
+   bPeticionAbrirPinza    = FALSE
+END
+
+GLOBAL DEF autGripperClose ()
+   bPeticionAbrirPinza    = FALSE
+   bPeticionCerrarPinza   = TRUE
+   WAIT FOR bPinzaCerrada
+   bPeticionCerrarPinza   = FALSE
+END
+
+GLOBAL DEF autMotorOn ()
+   bPeticionMarchaGiro   = TRUE
+END
+
+GLOBAL DEF autMotorOff ()
+   bPeticionMarchaGiro   = FALSE
+END
+
+GLOBAL DEF autLamaparasOn()
+   bPeticionLamparasEnc = TRUE
+END
+
+GLOBAL DEF autLamparasOff()
+   bPeticionLamparasEnc = FALSE
+END
+
+GLOBAL DEF autLaserON()
+   IF NOT dryRun THEN
+      bPeticionDisparoLaser = TRUE
+   ENDIF
+END
+
+GLOBAL DEF autLaserOFF()
+      bPeticionDisparoLaser = TRUE
+END
+
+GLOBAL DEF autPaintON()
+   IF NOT dryRun THEN
+      bPeticionDisparoPintura = TRUE
+
+   ENDIF
+END
+
+GLOBAL DEF autPaintOFF()
+   bPeticionDisparoPintura = FALSE
+END
+
+GLOBAL DEF autToolResetOut()
+   bPeticionMarchaGiro     = FALSE
+   bPeticionAbrirPinza     = FALSE
+   bPeticionCerrarPinza    = FALSE
+   bPeticionLamparasEnc    = FALSE
+   bPeticionAbrirPinza     = FALSE
+   bPeticionDisparoLaser   = FALSE
+   bPeticionCerrarPinza    = FALSE
+   bPeticionLamparasEnc    = FALSE
+   bPeticionDisparoPintura = FALSE
+   RESET_CICLO             = FALSE
+END

@@ -1,0 +1,161 @@
+&ACCESS R2
+&REL 2
+&COMMENT GripperSpotTech package
+&PARAM KUKATPGRP_VERSION = 5.0
+&PARAM DISKPATH = KRC:\R1\TP\GripperSpotTech
+DEFDAT Grp_Signal PUBLIC
+;##############################################
+;# File-Version: 1.0
+;# Don't Change: This File will be generated
+;# automatically through HMI- and WoV-PlugIn
+;# Copyright (c) KUKA Deutschland GmbH 2020
+;##############################################
+
+;FOLD Gripper Signal Enum & Structure
+GLOBAL STRUC GRP_Sig_T CHAR Name[24],Description[24],BOOL Act,INT BitFrom,BitTo,BitLength
+;ENDFOLD (Gripper Signal Enum & Structure)
+
+;FOLD Gripper Signal Definitions Inputs
+GLOBAL SIGNAL GRP_SigIn_1 $IN[1026] TO $IN[1026]; GRP_SigIn_1 Desc
+GLOBAL SIGNAL GRP_SigIn_2 $IN[1026] TO $IN[1026]; GRP_SigIn_2 Desc
+GLOBAL SIGNAL GRP_SigIn_3 $IN[1026] TO $IN[1026]; GRP_SigIn_3 Desc
+GLOBAL SIGNAL GRP_SigIn_4 $IN[1026] TO $IN[1026]; GRP_SigIn_4 Desc
+GLOBAL SIGNAL GRP_SigIn_5 $IN[1026] TO $IN[1026]; GRP_SigIn_5 Desc
+GLOBAL SIGNAL GRP_SigIn_6 $IN[1026] TO $IN[1026]; GRP_SigIn_6 Desc
+GLOBAL SIGNAL GRP_SigIn_7 $IN[1026] TO $IN[1026]; GRP_SigIn_7 Desc
+GLOBAL SIGNAL GRP_SigIn_8 $IN[1026] TO $IN[1026]; GRP_SigIn_8 Desc
+GLOBAL SIGNAL GRP_SigIn_9 $IN[1026] TO $IN[1026]; GRP_SigIn_9 Desc
+GLOBAL SIGNAL GRP_SigIn_10 $IN[1026] TO $IN[1026]; GRP_SigIn_10 Desc
+GLOBAL SIGNAL GRP_SigIn_11 $IN[1026] TO $IN[1026]; GRP_SigIn_11 Desc
+GLOBAL SIGNAL GRP_SigIn_12 $IN[1026] TO $IN[1026]; GRP_SigIn_12 Desc
+GLOBAL SIGNAL GRP_SigIn_13 $IN[1026] TO $IN[1026]; GRP_SigIn_13 Desc
+GLOBAL SIGNAL GRP_SigIn_14 $IN[1026] TO $IN[1026]; GRP_SigIn_14 Desc
+GLOBAL SIGNAL GRP_SigIn_15 $IN[1026] TO $IN[1026]; GRP_SigIn_15 Desc
+GLOBAL SIGNAL GRP_SigIn_16 $IN[1026] TO $IN[1026]; GRP_SigIn_16 Desc
+GLOBAL SIGNAL GRP_SigIn_17 $IN[1026] TO $IN[1026]; GRP_SigIn_17 Desc
+GLOBAL SIGNAL GRP_SigIn_18 $IN[1026] TO $IN[1026]; GRP_SigIn_18 Desc
+GLOBAL SIGNAL GRP_SigIn_19 $IN[1026] TO $IN[1026]; GRP_SigIn_19 Desc
+GLOBAL SIGNAL GRP_SigIn_20 $IN[1026] TO $IN[1026]; GRP_SigIn_20 Desc
+GLOBAL SIGNAL GRP_SigIn_21 $IN[1026] TO $IN[1026]; GRP_SigIn_21 Desc
+GLOBAL SIGNAL GRP_SigIn_22 $IN[1026] TO $IN[1026]; GRP_SigIn_22 Desc
+GLOBAL SIGNAL GRP_SigIn_23 $IN[1026] TO $IN[1026]; GRP_SigIn_23 Desc
+GLOBAL SIGNAL GRP_SigIn_24 $IN[1026] TO $IN[1026]; GRP_SigIn_24 Desc
+GLOBAL SIGNAL GRP_SigIn_25 $IN[1026] TO $IN[1026]; GRP_SigIn_25 Desc
+GLOBAL SIGNAL GRP_SigIn_26 $IN[1026] TO $IN[1026]; GRP_SigIn_26 Desc
+GLOBAL SIGNAL GRP_SigIn_27 $IN[1026] TO $IN[1026]; GRP_SigIn_27 Desc
+GLOBAL SIGNAL GRP_SigIn_28 $IN[1026] TO $IN[1026]; GRP_SigIn_28 Desc
+GLOBAL SIGNAL GRP_SigIn_29 $IN[1026] TO $IN[1026]; GRP_SigIn_29 Desc
+GLOBAL SIGNAL GRP_SigIn_30 $IN[1026] TO $IN[1026]; GRP_SigIn_30 Desc
+GLOBAL SIGNAL GRP_SigIn_31 $IN[1026] TO $IN[1026]; GRP_SigIn_31 Desc
+GLOBAL SIGNAL GRP_SigIn_32 $IN[1026] TO $IN[1026]; GRP_SigIn_32 Desc
+;ENDFOLD (Gripper Signal Definitions Inputs)
+
+;FOLD Gripper Signal Definitions Outputs
+GLOBAL SIGNAL GRP_SigOut_1 $OUT[1] TO $OUT[1]; GRP_SigOut_1 Desc
+GLOBAL SIGNAL GRP_SigOut_2 $OUT[1] TO $OUT[1]; GRP_SigOut_2 Desc
+GLOBAL SIGNAL GRP_SigOut_3 $OUT[1] TO $OUT[1]; GRP_SigOut_3 Desc
+GLOBAL SIGNAL GRP_SigOut_4 $OUT[1] TO $OUT[1]; GRP_SigOut_4 Desc
+GLOBAL SIGNAL GRP_SigOut_5 $OUT[1] TO $OUT[1]; GRP_SigOut_5 Desc
+GLOBAL SIGNAL GRP_SigOut_6 $OUT[1] TO $OUT[1]; GRP_SigOut_6 Desc
+GLOBAL SIGNAL GRP_SigOut_7 $OUT[1] TO $OUT[1]; GRP_SigOut_7 Desc
+GLOBAL SIGNAL GRP_SigOut_8 $OUT[1] TO $OUT[1]; GRP_SigOut_8 Desc
+GLOBAL SIGNAL GRP_SigOut_9 $OUT[1] TO $OUT[1]; GRP_SigOut_9 Desc
+GLOBAL SIGNAL GRP_SigOut_10 $OUT[1] TO $OUT[1]; GRP_SigOut_10 Desc
+GLOBAL SIGNAL GRP_SigOut_11 $OUT[1] TO $OUT[1]; GRP_SigOut_11 Desc
+GLOBAL SIGNAL GRP_SigOut_12 $OUT[1] TO $OUT[1]; GRP_SigOut_12 Desc
+GLOBAL SIGNAL GRP_SigOut_13 $OUT[1] TO $OUT[1]; GRP_SigOut_13 Desc
+GLOBAL SIGNAL GRP_SigOut_14 $OUT[1] TO $OUT[1]; GRP_SigOut_14 Desc
+GLOBAL SIGNAL GRP_SigOut_15 $OUT[1] TO $OUT[1]; GRP_SigOut_15 Desc
+GLOBAL SIGNAL GRP_SigOut_16 $OUT[1] TO $OUT[1]; GRP_SigOut_16 Desc
+GLOBAL SIGNAL GRP_SigOut_17 $OUT[1] TO $OUT[1]; GRP_SigOut_17 Desc
+GLOBAL SIGNAL GRP_SigOut_18 $OUT[1] TO $OUT[1]; GRP_SigOut_18 Desc
+GLOBAL SIGNAL GRP_SigOut_19 $OUT[1] TO $OUT[1]; GRP_SigOut_19 Desc
+GLOBAL SIGNAL GRP_SigOut_20 $OUT[1] TO $OUT[1]; GRP_SigOut_20 Desc
+GLOBAL SIGNAL GRP_SigOut_21 $OUT[1] TO $OUT[1]; GRP_SigOut_21 Desc
+GLOBAL SIGNAL GRP_SigOut_22 $OUT[1] TO $OUT[1]; GRP_SigOut_22 Desc
+GLOBAL SIGNAL GRP_SigOut_23 $OUT[1] TO $OUT[1]; GRP_SigOut_23 Desc
+GLOBAL SIGNAL GRP_SigOut_24 $OUT[1] TO $OUT[1]; GRP_SigOut_24 Desc
+GLOBAL SIGNAL GRP_SigOut_25 $OUT[1] TO $OUT[1]; GRP_SigOut_25 Desc
+GLOBAL SIGNAL GRP_SigOut_26 $OUT[1] TO $OUT[1]; GRP_SigOut_26 Desc
+GLOBAL SIGNAL GRP_SigOut_27 $OUT[1] TO $OUT[1]; GRP_SigOut_27 Desc
+GLOBAL SIGNAL GRP_SigOut_28 $OUT[1] TO $OUT[1]; GRP_SigOut_28 Desc
+GLOBAL SIGNAL GRP_SigOut_29 $OUT[1] TO $OUT[1]; GRP_SigOut_29 Desc
+GLOBAL SIGNAL GRP_SigOut_30 $OUT[1] TO $OUT[1]; GRP_SigOut_30 Desc
+GLOBAL SIGNAL GRP_SigOut_31 $OUT[1] TO $OUT[1]; GRP_SigOut_31 Desc
+GLOBAL SIGNAL GRP_SigOut_32 $OUT[1] TO $OUT[1]; GRP_SigOut_32 Desc
+;ENDFOLD (Gripper Signal Definitions Outputs)
+
+;FOLD Gripper Signal Input Structure
+
+DECL GLOBAL GRP_Sig_T GRP_SigInput[32]
+GRP_SigInput[1]={Name[] "GRP_SigIn_1", Act False, BitFrom 1026, BitTo 1026, BitLength 1, Description[] "GRP_SigIn_1 Desc"}
+GRP_SigInput[2]={Name[] "GRP_SigIn_2", Act False, BitFrom 1026, BitTo 1026, BitLength 1, Description[] "GRP_SigIn_2 Desc"}
+GRP_SigInput[3]={Name[] "GRP_SigIn_3", Act False, BitFrom 1026, BitTo 1026, BitLength 1, Description[] "GRP_SigIn_3 Desc"}
+GRP_SigInput[4]={Name[] "GRP_SigIn_4", Act False, BitFrom 1026, BitTo 1026, BitLength 1, Description[] "GRP_SigIn_4 Desc"}
+GRP_SigInput[5]={Name[] "GRP_SigIn_5", Act False, BitFrom 1026, BitTo 1026, BitLength 1, Description[] "GRP_SigIn_5 Desc"}
+GRP_SigInput[6]={Name[] "GRP_SigIn_6", Act False, BitFrom 1026, BitTo 1026, BitLength 1, Description[] "GRP_SigIn_6 Desc"}
+GRP_SigInput[7]={Name[] "GRP_SigIn_7", Act False, BitFrom 1026, BitTo 1026, BitLength 1, Description[] "GRP_SigIn_7 Desc"}
+GRP_SigInput[8]={Name[] "GRP_SigIn_8", Act False, BitFrom 1026, BitTo 1026, BitLength 1, Description[] "GRP_SigIn_8 Desc"}
+GRP_SigInput[9]={Name[] "GRP_SigIn_9", Act False, BitFrom 1026, BitTo 1026, BitLength 1, Description[] "GRP_SigIn_9 Desc"}
+GRP_SigInput[10]={Name[] "GRP_SigIn_10", Act False, BitFrom 1026, BitTo 1026, BitLength 1, Description[] "GRP_SigIn_10 Desc"}
+GRP_SigInput[11]={Name[] "GRP_SigIn_11", Act False, BitFrom 1026, BitTo 1026, BitLength 1, Description[] "GRP_SigIn_11 Desc"}
+GRP_SigInput[12]={Name[] "GRP_SigIn_12", Act False, BitFrom 1026, BitTo 1026, BitLength 1, Description[] "GRP_SigIn_12 Desc"}
+GRP_SigInput[13]={Name[] "GRP_SigIn_13", Act False, BitFrom 1026, BitTo 1026, BitLength 1, Description[] "GRP_SigIn_13 Desc"}
+GRP_SigInput[14]={Name[] "GRP_SigIn_14", Act False, BitFrom 1026, BitTo 1026, BitLength 1, Description[] "GRP_SigIn_14 Desc"}
+GRP_SigInput[15]={Name[] "GRP_SigIn_15", Act False, BitFrom 1026, BitTo 1026, BitLength 1, Description[] "GRP_SigIn_15 Desc"}
+GRP_SigInput[16]={Name[] "GRP_SigIn_16", Act False, BitFrom 1026, BitTo 1026, BitLength 1, Description[] "GRP_SigIn_16 Desc"}
+GRP_SigInput[17]={Name[] "GRP_SigIn_17", Act False, BitFrom 1026, BitTo 1026, BitLength 1, Description[] "GRP_SigIn_17 Desc"}
+GRP_SigInput[18]={Name[] "GRP_SigIn_18", Act False, BitFrom 1026, BitTo 1026, BitLength 1, Description[] "GRP_SigIn_18 Desc"}
+GRP_SigInput[19]={Name[] "GRP_SigIn_19", Act False, BitFrom 1026, BitTo 1026, BitLength 1, Description[] "GRP_SigIn_19 Desc"}
+GRP_SigInput[20]={Name[] "GRP_SigIn_20", Act False, BitFrom 1026, BitTo 1026, BitLength 1, Description[] "GRP_SigIn_20 Desc"}
+GRP_SigInput[21]={Name[] "GRP_SigIn_21", Act False, BitFrom 1026, BitTo 1026, BitLength 1, Description[] "GRP_SigIn_21 Desc"}
+GRP_SigInput[22]={Name[] "GRP_SigIn_22", Act False, BitFrom 1026, BitTo 1026, BitLength 1, Description[] "GRP_SigIn_22 Desc"}
+GRP_SigInput[23]={Name[] "GRP_SigIn_23", Act False, BitFrom 1026, BitTo 1026, BitLength 1, Description[] "GRP_SigIn_23 Desc"}
+GRP_SigInput[24]={Name[] "GRP_SigIn_24", Act False, BitFrom 1026, BitTo 1026, BitLength 1, Description[] "GRP_SigIn_24 Desc"}
+GRP_SigInput[25]={Name[] "GRP_SigIn_25", Act False, BitFrom 1026, BitTo 1026, BitLength 1, Description[] "GRP_SigIn_25 Desc"}
+GRP_SigInput[26]={Name[] "GRP_SigIn_26", Act False, BitFrom 1026, BitTo 1026, BitLength 1, Description[] "GRP_SigIn_26 Desc"}
+GRP_SigInput[27]={Name[] "GRP_SigIn_27", Act False, BitFrom 1026, BitTo 1026, BitLength 1, Description[] "GRP_SigIn_27 Desc"}
+GRP_SigInput[28]={Name[] "GRP_SigIn_28", Act False, BitFrom 1026, BitTo 1026, BitLength 1, Description[] "GRP_SigIn_28 Desc"}
+GRP_SigInput[29]={Name[] "GRP_SigIn_29", Act False, BitFrom 1026, BitTo 1026, BitLength 1, Description[] "GRP_SigIn_29 Desc"}
+GRP_SigInput[30]={Name[] "GRP_SigIn_30", Act False, BitFrom 1026, BitTo 1026, BitLength 1, Description[] "GRP_SigIn_30 Desc"}
+GRP_SigInput[31]={Name[] "GRP_SigIn_31", Act False, BitFrom 1026, BitTo 1026, BitLength 1, Description[] "GRP_SigIn_31 Desc"}
+GRP_SigInput[32]={Name[] "GRP_SigIn_32", Act False, BitFrom 1026, BitTo 1026, BitLength 1, Description[] "GRP_SigIn_32 Desc"}
+;ENDFOLD (Gripper Signal Input Structure)
+
+;FOLD Gripper Signal Output Structure
+DECL GLOBAL GRP_Sig_T GRP_SigOutput[32]
+GRP_SigOutput[1]={Name[] "GRP_SigOut_1", Act False, BitFrom 1, BitTo 1, BitLength 1, Description[] "GRP_SigOut_1 Desc"}
+GRP_SigOutput[2]={Name[] "GRP_SigOut_2", Act False, BitFrom 1, BitTo 1, BitLength 1, Description[] "GRP_SigOut_2 Desc"}
+GRP_SigOutput[3]={Name[] "GRP_SigOut_3", Act False, BitFrom 1, BitTo 1, BitLength 1, Description[] "GRP_SigOut_3 Desc"}
+GRP_SigOutput[4]={Name[] "GRP_SigOut_4", Act False, BitFrom 1, BitTo 1, BitLength 1, Description[] "GRP_SigOut_4 Desc"}
+GRP_SigOutput[5]={Name[] "GRP_SigOut_5", Act False, BitFrom 1, BitTo 1, BitLength 1, Description[] "GRP_SigOut_5 Desc"}
+GRP_SigOutput[6]={Name[] "GRP_SigOut_6", Act False, BitFrom 1, BitTo 1, BitLength 1, Description[] "GRP_SigOut_6 Desc"}
+GRP_SigOutput[7]={Name[] "GRP_SigOut_7", Act False, BitFrom 1, BitTo 1, BitLength 1, Description[] "GRP_SigOut_7 Desc"}
+GRP_SigOutput[8]={Name[] "GRP_SigOut_8", Act False, BitFrom 1, BitTo 1, BitLength 1, Description[] "GRP_SigOut_8 Desc"}
+GRP_SigOutput[9]={Name[] "GRP_SigOut_9", Act False, BitFrom 1, BitTo 1, BitLength 1, Description[] "GRP_SigOut_9 Desc"}
+GRP_SigOutput[10]={Name[] "GRP_SigOut_10", Act False, BitFrom 1, BitTo 1, BitLength 1, Description[] "GRP_SigOut_10 Desc"}
+GRP_SigOutput[11]={Name[] "GRP_SigOut_11", Act False, BitFrom 1, BitTo 1, BitLength 1, Description[] "GRP_SigOut_11 Desc"}
+GRP_SigOutput[12]={Name[] "GRP_SigOut_12", Act False, BitFrom 1, BitTo 1, BitLength 1, Description[] "GRP_SigOut_12 Desc"}
+GRP_SigOutput[13]={Name[] "GRP_SigOut_13", Act False, BitFrom 1, BitTo 1, BitLength 1, Description[] "GRP_SigOut_13 Desc"}
+GRP_SigOutput[14]={Name[] "GRP_SigOut_14", Act False, BitFrom 1, BitTo 1, BitLength 1, Description[] "GRP_SigOut_14 Desc"}
+GRP_SigOutput[15]={Name[] "GRP_SigOut_15", Act False, BitFrom 1, BitTo 1, BitLength 1, Description[] "GRP_SigOut_15 Desc"}
+GRP_SigOutput[16]={Name[] "GRP_SigOut_16", Act False, BitFrom 1, BitTo 1, BitLength 1, Description[] "GRP_SigOut_16 Desc"}
+GRP_SigOutput[17]={Name[] "GRP_SigOut_17", Act False, BitFrom 1, BitTo 1, BitLength 1, Description[] "GRP_SigOut_17 Desc"}
+GRP_SigOutput[18]={Name[] "GRP_SigOut_18", Act False, BitFrom 1, BitTo 1, BitLength 1, Description[] "GRP_SigOut_18 Desc"}
+GRP_SigOutput[19]={Name[] "GRP_SigOut_19", Act False, BitFrom 1, BitTo 1, BitLength 1, Description[] "GRP_SigOut_19 Desc"}
+GRP_SigOutput[20]={Name[] "GRP_SigOut_20", Act False, BitFrom 1, BitTo 1, BitLength 1, Description[] "GRP_SigOut_20 Desc"}
+GRP_SigOutput[21]={Name[] "GRP_SigOut_21", Act False, BitFrom 1, BitTo 1, BitLength 1, Description[] "GRP_SigOut_21 Desc"}
+GRP_SigOutput[22]={Name[] "GRP_SigOut_22", Act False, BitFrom 1, BitTo 1, BitLength 1, Description[] "GRP_SigOut_22 Desc"}
+GRP_SigOutput[23]={Name[] "GRP_SigOut_23", Act False, BitFrom 1, BitTo 1, BitLength 1, Description[] "GRP_SigOut_23 Desc"}
+GRP_SigOutput[24]={Name[] "GRP_SigOut_24", Act False, BitFrom 1, BitTo 1, BitLength 1, Description[] "GRP_SigOut_24 Desc"}
+GRP_SigOutput[25]={Name[] "GRP_SigOut_25", Act False, BitFrom 1, BitTo 1, BitLength 1, Description[] "GRP_SigOut_25 Desc"}
+GRP_SigOutput[26]={Name[] "GRP_SigOut_26", Act False, BitFrom 1, BitTo 1, BitLength 1, Description[] "GRP_SigOut_26 Desc"}
+GRP_SigOutput[27]={Name[] "GRP_SigOut_27", Act False, BitFrom 1, BitTo 1, BitLength 1, Description[] "GRP_SigOut_27 Desc"}
+GRP_SigOutput[28]={Name[] "GRP_SigOut_28", Act False, BitFrom 1, BitTo 1, BitLength 1, Description[] "GRP_SigOut_28 Desc"}
+GRP_SigOutput[29]={Name[] "GRP_SigOut_29", Act False, BitFrom 1, BitTo 1, BitLength 1, Description[] "GRP_SigOut_29 Desc"}
+GRP_SigOutput[30]={Name[] "GRP_SigOut_30", Act False, BitFrom 1, BitTo 1, BitLength 1, Description[] "GRP_SigOut_30 Desc"}
+GRP_SigOutput[31]={Name[] "GRP_SigOut_31", Act False, BitFrom 1, BitTo 1, BitLength 1, Description[] "GRP_SigOut_31 Desc"}
+GRP_SigOutput[32]={Name[] "GRP_SigOut_32", Act False, BitFrom 1, BitTo 1, BitLength 1, Description[] "GRP_SigOut_32 Desc"}
+;ENDFOLD (Gripper Signal Output Structure)
+ENDDAT
+

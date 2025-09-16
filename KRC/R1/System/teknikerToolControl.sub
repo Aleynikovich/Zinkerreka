@@ -1,0 +1,91 @@
+&ACCESS RVP
+&COMMENT USER specified PLC program
+DEF  teknikerToolControl ( )
+   ; --------------------------------------------------------
+   ; Program: teknikerToolControl
+   ; Description: Real time control for manual operations with
+   ;              tools
+   ; Creation Date: 16/04/2024
+   ; Last Modification Date: 16/04/2024
+   ; Author:   
+   ;           Alexander Kalis
+   ;           Tekniker, C. Iñaki Goenaga, 5, 20600, Gipuzkoa
+   ;           +34 674 05 15 10
+   ;           alexander.kalis@tekniker.es
+   ; Last modification Author: 
+   ;           Alexander Kalis
+   ; Customer: Erreka S. COOP
+   ; --------------------------------------------------------
+   ;FOLD DECLARATIONS
+      ;FOLD USER DECL
+         ; Please insert user defined declarations
+         
+      ;ENDFOLD (USER DECL)
+   ;ENDFOLD (DECLARATIONS)
+   ;FOLD INI
+      ;FOLD USER INIT
+         ; Please insert user defined initialization commands
+         
+      ;ENDFOLD (USER INIT)
+   ;ENDFOLD (INI)
+   
+   LOOP
+      ;Status KEYS Tekniker Manual con T1,accionamientos ON, seguridades OK, sin programa y experto+
+      IF $T1 AND $PERI_RDY AND $USER_SAF  AND ($USER_LEVEL >= 20) THEN ;AND NOT $PRO_ACT
+         
+         ;-Abrir pinza (mantener pulsado)-----
+         IF is_key_pressed(14) THEN
+            bManAbrirPinza = TRUE
+         ELSE
+            bManAbrirPinza = FALSE
+         ENDIF
+         ;------------------------------------
+         
+         ;$FLAG[12]= is_key_pressed(15)
+         ;$FLAG[2] = $FLAG[12] AND NOT $FLAG[16]
+         ;$FLAG[16]= $FLAG[12]
+         ;IF $FLAG[2] THEN
+            ;$OUT[157] = NOT $OUT[157] ; Cerrar con flanco
+         ;ENDIF
+         ;
+         ;-Cerrar pinza (mantener pulsado)----     
+         IF is_key_pressed(15) THEN
+            bManCerrarPinza = TRUE
+         ELSE
+            bManCerrarPinza = FALSE
+         ENDIF
+         ;------------------------------------
+         
+         ;Motor (set/reset con el mismo boton con flanco)
+         $FLAG[11]   =  is_key_pressed(16)
+         $FLAG[15]   =  $FLAG[11]
+         $FLAG[1]    =  $FLAG[11] AND NOT $FLAG[15]
+         IF $FLAG[1] THEN
+            bManMarchaMotorSet = NOT bManMarchaMotorSet
+         ENDIF
+         ;------------------------------------------------
+         ;Laser (set/reset con el mismo boton con flanco, mantener 2s para activar)
+         IF is_key_pressed(17) THEN
+            $TIMER[10] = 0
+            $TIMER_STOP[10] = FALSE
+            WAIT FOR NOT is_key_pressed(17) OR ($TIMER[10] > 2000)
+            $TIMER_STOP[10] = TRUE
+            IF ($TIMER[10] > 2000) AND is_key_pressed(17) THEN
+               bManLaserSet = TRUE
+               WAIT SEC 0.1
+            ELSE
+               bManLaserSet = FALSE
+            ENDIF
+         ENDIF
+         ;-------------------------------------------------------------------------
+         
+      ;Si alguna de las condiciones de seguridad se incumple, se apaga todo   
+      ELSE
+         bManAbrirPinza       =  FALSE
+         bManCerrarPinza      =  FALSE
+         bManMarchaMotorSet   =  FALSE
+         bManLaserSet         =  FALSE
+      ENDIF
+   ENDLOOP
+   
+END

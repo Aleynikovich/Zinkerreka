@@ -1,0 +1,74 @@
+&ACCESS RVP
+&REL 94
+&PARAM DISKPATH = KRC:\R1\Program\Work
+DEF  C1_pickConveyorBP ( )
+   ;FOLD PROGRAM INFO -------------------------------------------------------
+      ; Program: C0_pickConveyorBP
+      ; Description:
+      ; Creation Date: 16/04/2024
+      ; Last Modification Date: 07/05/2024
+      ; Author:   
+      ;         Alexander Kalis
+      ;         Tekniker, C. Iñaki Goenaga, 5, 20600, Gipuzkoa
+      ;         +34 674 05 15 10
+      ;         alexander.kalis@tekniker.es
+      ; Last modification Author: 
+      ;           Alexander Kalis
+      ; Customer: Erreka S. COOP
+   ;ENDFOLD -------------------------------------------------------
+   ;FOLD INI;%{PE}
+      ;FOLD BASISTECH INI
+         GLOBAL INTERRUPT DECL 3 WHEN $STOPMESS==TRUE DO IR_STOPM ( )
+         INTERRUPT ON 3 
+         
+         BAS (#INITMOV,0 )
+      ;ENDFOLD (BASISTECH INI)
+      ;FOLD USER INI
+         autGripperOpen()   ;Peticion apertura pinza 
+         ;Make your modifications here
+         
+      ;ENDFOLD (USER INI)
+   ;ENDFOLD (INI)
+   
+   ;FOLD SPTP HOME Vel=100 % DEFAULT ;%{PE}
+      ;FOLD Parameters ;%{h}
+         ;Params IlfProvider=kukaroboter.basistech.inlineforms.movement.spline; Kuka.IsGlobalPoint=False; Kuka.PointName=HOME; Kuka.BlendingEnabled=False; Kuka.MoveDataPtpName=DEFAULT; Kuka.VelocityPtp=100; Kuka.VelocityFieldEnabled=True; Kuka.CurrentCDSetIndex=0; Kuka.MovementParameterFieldEnabled=True; IlfCommand=SPTP
+      ;ENDFOLD
+      SPTP XHOME WITH $VEL_AXIS[1] = SVEL_JOINT(100.0), $TOOL = STOOL2(FHOME), $BASE = SBASE(FHOME.BASE_NO), $IPO_MODE = SIPO_MODE(FHOME.IPO_FRAME), $LOAD = SLOAD(FHOME.TOOL_NO), $ACC_AXIS[1] = SACC_JOINT(PDEFAULT), $APO = SAPO_PTP(PDEFAULT), $GEAR_JERK[1] = SGEAR_JERK(PDEFAULT), $COLLMON_TOL_PRO[1] = USE_CM_PRO_VALUES(0)
+   ;ENDFOLD
+   
+   ;FOLD Path to BP conveyor
+;FOLD SPTP homeConveyor1 CONT Vel=100 % PDAT10 Tool[1]:pintxoEstatico Base[1]:pickBP ;%{PE}
+;FOLD Parameters ;%{h}
+;Params IlfProvider=kukaroboter.basistech.inlineforms.movement.spline; Kuka.IsGlobalPoint=False; Kuka.PointName=homeConveyor1; Kuka.BlendingEnabled=True; Kuka.MoveDataPtpName=PDAT10; Kuka.VelocityPtp=100; Kuka.VelocityFieldEnabled=True; Kuka.ColDetectFieldEnabled=True; Kuka.CurrentCDSetIndex=0; Kuka.MovementParameterFieldEnabled=True; IlfCommand=SPTP
+;ENDFOLD
+SPTP XhomeConveyor1 WITH $VEL_AXIS[1] = SVEL_JOINT(100.0), $TOOL = STOOL2(FhomeConveyor1), $BASE = SBASE(FhomeConveyor1.BASE_NO), $IPO_MODE = SIPO_MODE(FhomeConveyor1.IPO_FRAME), $LOAD = SLOAD(FhomeConveyor1.TOOL_NO), $ACC_AXIS[1] = SACC_JOINT(PPDAT10), $APO = SAPO_PTP(PPDAT10), $GEAR_JERK[1] = SGEAR_JERK(PPDAT10), $COLLMON_TOL_PRO[1] = USE_CM_PRO_VALUES(0) C_Spl
+;ENDFOLD
+      petitionPermission(bPetEntradaZonaCintaBP,bPermisoEntradaBPArriba)  
+   ;ENDFOLD
+   C251_T1_PosAct()
+   ;FOLD INIT pick
+      $TOOL          =  TOOL_DATA[1]
+      $BASE          =  BASE_DATA[1]
+      $IPO_MODE      =  #BASE
+      pickPos        =  $NULLPOS : posCalcPickBP($RECIPE, $LAYOUT)
+      pickYOffset.Y  =  5
+   ;ENDFOLD
+   
+   SPTP pickPos : $RECIPE.PiO : zOffsetFrame C_SPL                   ;Punto de aproximación de cogida
+   petitionPermission(bPetEntradaCogerCintaBP,bPermisoEntradaBPAbajo)
+   SLIN pickPos : mechanicalOffset : $RECIPE.PiO                     ;Punto de cogida
+   SLIN pickPos : pickYOffset : mechanicalOffset : $RECIPE.PiO       ;Punto de cogida con movimiento lateral
+   autGripperClose()                                                 ;Robot en posicion de cogida. Espera permiso salida y pinza cerrada                    ;
+   SLIN_REL {Z 300}  C_SPL                                           ;Punto de aproximación de cogida relativo Z+
+   ;FOLD Path to home
+   ;ENDFOLD
+   
+   ;FOLD SPTP HOME Vel=100 % DEFAULT ;%{PE}
+      ;FOLD Parameters ;%{h}
+         ;Params IlfProvider=kukaroboter.basistech.inlineforms.movement.spline; Kuka.IsGlobalPoint=False; Kuka.PointName=HOME; Kuka.BlendingEnabled=False; Kuka.MoveDataPtpName=DEFAULT; Kuka.VelocityPtp=100; Kuka.VelocityFieldEnabled=True; Kuka.CurrentCDSetIndex=0; Kuka.MovementParameterFieldEnabled=True; IlfCommand=SPTP
+      ;ENDFOLD
+      SPTP XHOME WITH $VEL_AXIS[1] = SVEL_JOINT(100.0), $TOOL = STOOL2(FHOME), $BASE = SBASE(FHOME.BASE_NO), $IPO_MODE = SIPO_MODE(FHOME.IPO_FRAME), $LOAD = SLOAD(FHOME.TOOL_NO), $ACC_AXIS[1] = SACC_JOINT(PDEFAULT), $APO = SAPO_PTP(PDEFAULT), $GEAR_JERK[1] = SGEAR_JERK(PDEFAULT), $COLLMON_TOL_PRO[1] = USE_CM_PRO_VALUES(0)
+   ;ENDFOLD
+ 
+END

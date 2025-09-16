@@ -1,0 +1,20 @@
+&ACCESS RV
+DEFFCT BOOL C203_LoadLayout (alpha:IN, lRow:IN, lColumn:IN, maxUnits:IN )
+   int i, maxUnits
+   DECL REAL alpha, lRow, lColumn
+   DECL LAYOUT_CONFIG hmiLayout
+   
+   ;hmiLayout.alphaVBP = alpha
+   ;hmiLayout.lFilas = lRow
+   ;hmiLayout.lColumnas = lColumn
+   ;hmiLayout.maxPiezasIR = maxUnits
+   ;
+   ;FOR i = 1 TO 16 
+      ;IF (LAYOUT_DATA[i] == hmiLayout) THEN
+         ;RETURN TRUE
+      ;ENDIF
+   ;ENDFOR
+   
+   RETURN FALSE
+   
+ENDFCT
