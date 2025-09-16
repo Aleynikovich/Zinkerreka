@@ -60,12 +60,26 @@ SPTP Xhtl1 WITH $VEL_AXIS[1] = SVEL_JOINT(100.0), $TOOL = STOOL2(Fhtl1), $BASE =
       
       ;BUCLE DEPENDIENDO DEL NUMERO DE PASADAS
       FOR contadorPasadasLaser = 1 TO ByNPasadasLaser STEP 2
-         ;FOLD Limpieza exterior cabeza
-            $TOOL = TOOL_DATA[1] : laserFrames.screwOuterHead
-            TRIGGER WHEN PATH = 0 ONSTART DELAY = 0 DO autLaserON() PRIO = 101
-            SLIN $NULLFRAME:C2LaserOffset[$RECIPE.recipeNum].sOHO WITH $VEL.CP = laserParameter[$RECIPE.recipeNum].vel1, $VEL.ORI1 = laserParameter[$RECIPE.recipeNum].velRot1, $VEL.ORI2 = laserParameter[$RECIPE.recipeNum].velRot1
-            WAIT SEC laserParameter[$RECIPE.recipeNum].tClean1
+
+               ;FOLD Limpieza exterior esparrago
+            $TOOL = TOOL_DATA[1] : laserFrames.screwBottom
+            SLIN $NULLFRAME:C2LaserOffset[$RECIPE.recipeNum].sBO WITH $VEL.CP = laserParameter[$RECIPE.recipeNum].vel2, $VEL.ORI1 = laserParameter[$RECIPE.recipeNum].velRot2, $VEL.ORI2 = laserParameter[$RECIPE.recipeNum].velRot2
+            WAIT SEC laserParameter[$RECIPE.recipeNum].tClean3
          ;ENDFOLD
+        
+         
+         ;FOLD Limpieza perfil esparrago (punto A)
+            velocidadAnterior = $OV_PRO
+            $TOOL = TOOL_DATA[1] : laserFrames.screwProfileA
+            SLIN $NULLFRAME:C2LaserOffset[$RECIPE.recipeNum].sPAO WITH $VEL.CP = laserParameter[$RECIPE.recipeNum].vel1, $VEL.ORI1 = laserParameter[$RECIPE.recipeNum].velRot1, $VEL.ORI2 = laserParameter[$RECIPE.recipeNum].velRot1
+            $OV_PRO = 100
+         ;ENDFOLD
+         ;FOLD Limpieza perfil esparrago (punto B)
+            $TOOL = TOOL_DATA[1] : laserFrames.screwProfileB
+            SLIN $NULLFRAME:C2LaserOffset[$RECIPE.recipeNum].sPBO WITH $VEL.CP = laserParameter[$RECIPE.recipeNum].velSweep, $VEL.ORI1 = laserParameter[$RECIPE.recipeNum].velRot1, $VEL.ORI2 = laserParameter[$RECIPE.recipeNum].velRot1
+         ;ENDFOLD
+
+
          IF (bTornillo) THEN
             
             ;FOLD Limpieza perfil cabeza
@@ -79,22 +93,14 @@ SPTP Xhtl1 WITH $VEL_AXIS[1] = SVEL_JOINT(100.0), $TOOL = STOOL2(Fhtl1), $BASE =
                WAIT SEC laserParameter[$RECIPE.recipeNum].tClean2
             ;ENDFOLD
          ENDIF
-         
-         ;FOLD Limpieza perfil esparrago (punto A)
-            velocidadAnterior = $OV_PRO
-            $TOOL = TOOL_DATA[1] : laserFrames.screwProfileA
-            SLIN $NULLFRAME:C2LaserOffset[$RECIPE.recipeNum].sPAO WITH $VEL.CP = laserParameter[$RECIPE.recipeNum].vel1, $VEL.ORI1 = laserParameter[$RECIPE.recipeNum].velRot1, $VEL.ORI2 = laserParameter[$RECIPE.recipeNum].velRot1
-            $OV_PRO = 100
+
+                   ;FOLD Limpieza exterior cabeza
+            $TOOL = TOOL_DATA[1] : laserFrames.screwOuterHead
+            TRIGGER WHEN PATH = 0 ONSTART DELAY = 0 DO autLaserON() PRIO = 101
+            SLIN $NULLFRAME:C2LaserOffset[$RECIPE.recipeNum].sOHO WITH $VEL.CP = laserParameter[$RECIPE.recipeNum].vel1, $VEL.ORI1 = laserParameter[$RECIPE.recipeNum].velRot1, $VEL.ORI2 = laserParameter[$RECIPE.recipeNum].velRot1
+            WAIT SEC laserParameter[$RECIPE.recipeNum].tClean1
          ;ENDFOLD
-         ;FOLD Limpieza perfil esparrago (punto B)
-            $TOOL = TOOL_DATA[1] : laserFrames.screwProfileB
-            SLIN $NULLFRAME:C2LaserOffset[$RECIPE.recipeNum].sPBO WITH $VEL.CP = laserParameter[$RECIPE.recipeNum].velSweep, $VEL.ORI1 = laserParameter[$RECIPE.recipeNum].velRot1, $VEL.ORI2 = laserParameter[$RECIPE.recipeNum].velRot1
-         ;ENDFOLD
-         ;FOLD Limpieza exterior esparrago
-            $TOOL = TOOL_DATA[1] : laserFrames.screwBottom
-            SLIN $NULLFRAME:C2LaserOffset[$RECIPE.recipeNum].sBO WITH $VEL.CP = laserParameter[$RECIPE.recipeNum].vel2, $VEL.ORI1 = laserParameter[$RECIPE.recipeNum].velRot2, $VEL.ORI2 = laserParameter[$RECIPE.recipeNum].velRot2
-            WAIT SEC laserParameter[$RECIPE.recipeNum].tClean3
-         ;ENDFOLD
+
          
          ;Vuelta con angulo negativo B->A
          if ByNPasadasLaser > 1 THEN
@@ -135,15 +141,34 @@ SPTP Xhtl1 WITH $VEL_AXIS[1] = SVEL_JOINT(100.0), $TOOL = STOOL2(Fhtl1), $BASE =
          $IPO_MODE = #TCP                         
          laserFrames = posCalcLaserSweep($RECIPE, $LAYOUT)
          autMotorOn()
+      ;ENDFOLD 
+
+           ;FOLD Pintado exterior esparrago
+         TRIGGER WHEN PATH = 0 ONSTART DELAY = 0 DO autPaintON() PRIO = 108
+         $TOOL = TOOL_DATA[1] : laserFrames.screwBottom
+         SLIN $NULLFRAME WITH $VEL.CP = paintParameter[$RECIPE.recipeNum].vel2, $VEL.ORI1 = paintParameter[$RECIPE.recipeNum].velRot2, $VEL.ORI2 = paintParameter[$RECIPE.recipeNum].velRot2
+         autLamaparasOn()
+         WAIT SEC paintParameter[$RECIPE.recipeNum].tPaint3
+         TRIGGER WHEN PATH = 0 DELAY = 0 DO autPaintOFF() PRIO = 109
       ;ENDFOLD
-      ;FOLD Pintado exterior cabeza
-         $TOOL = TOOL_DATA[1] : laserFrames.screwOuterHead
-         TRIGGER WHEN PATH = 0 ONSTART DELAY = 0 DO autPaintON() PRIO = 100
-         SPTP $NULLFRAME WITH $VEL.CP = paintParameter[$RECIPE.recipeNum].vel1, $VEL.ORI1 = paintParameter[$RECIPE.recipeNum].velRot1, $VEL.ORI2 = paintParameter[$RECIPE.recipeNum].velRot1
-         WAIT SEC paintParameter[$RECIPE.recipeNum].tPaint1 
-         TRIGGER WHEN PATH = 0 ONSTART DELAY = 0 DO autPaintOFF() PRIO = 101
+
+
+      ;FOLD Pintado perfil esparrago (punto A)
+         velocidadAnterior = $OV_PRO
+         $TOOL = TOOL_DATA[1] : laserFrames.screwProfileA
+         TRIGGER WHEN PATH = 0 ONSTART DELAY = 0 DO autPaintON() PRIO = 106
+         wait sec 1.6
+         SLIN $NULLFRAME WITH $VEL.CP = paintParameter[$RECIPE.recipeNum].vel1, $VEL.ORI1 = paintParameter[$RECIPE.recipeNum].velRot1, $VEL.ORI2 = paintParameter[$RECIPE.recipeNum].velRot1
+         $OV_PRO = 100
       ;ENDFOLD
-      IF (bTornillo) THEN
+      ;FOLD Pintado perfil esparrago (punto B)
+         $TOOL = TOOL_DATA[1] : laserFrames.screwProfileB
+         SLIN $NULLFRAME  WITH $VEL.CP = paintParameter[$RECIPE.recipeNum].velSweep, $VEL.ORI1 = paintParameter[$RECIPE.recipeNum].velRot1, $VEL.ORI2 = paintParameter[$RECIPE.recipeNum].velRot1
+         TRIGGER WHEN PATH = 0 ONSTART DELAY = 0 DO autPaintOFF() PRIO = 107
+         $OV_PRO = velocidadAnterior
+      ;ENDFOLD
+ 
+            IF (bTornillo) THEN
          ;FOLD Pintado perfil cabeza
             TRIGGER WHEN PATH = 0 ONSTART DELAY = 0 DO autPaintON() PRIO = 102
             $TOOL = TOOL_DATA[1] : laserFrames.screwHex
@@ -159,28 +184,12 @@ SPTP Xhtl1 WITH $VEL_AXIS[1] = SVEL_JOINT(100.0), $TOOL = STOOL2(Fhtl1), $BASE =
             TRIGGER WHEN PATH = 0 ONSTART DELAY = 0 DO autPaintOFF() PRIO = 105
          ;ENDFOLD
       ENDIF
-      
-      ;FOLD Pintado perfil esparrago (punto A)
-         velocidadAnterior = $OV_PRO
-         $TOOL = TOOL_DATA[1] : laserFrames.screwProfileA
-         TRIGGER WHEN PATH = 0 ONSTART DELAY = 0 DO autPaintON() PRIO = 106
-         wait sec 1.6
-         SLIN $NULLFRAME WITH $VEL.CP = paintParameter[$RECIPE.recipeNum].vel1, $VEL.ORI1 = paintParameter[$RECIPE.recipeNum].velRot1, $VEL.ORI2 = paintParameter[$RECIPE.recipeNum].velRot1
-         $OV_PRO = 100
-      ;ENDFOLD
-      ;FOLD Pintado perfil esparrago (punto B)
-         $TOOL = TOOL_DATA[1] : laserFrames.screwProfileB
-         SLIN $NULLFRAME  WITH $VEL.CP = paintParameter[$RECIPE.recipeNum].velSweep, $VEL.ORI1 = paintParameter[$RECIPE.recipeNum].velRot1, $VEL.ORI2 = paintParameter[$RECIPE.recipeNum].velRot1
-         TRIGGER WHEN PATH = 0 ONSTART DELAY = 0 DO autPaintOFF() PRIO = 107
-         $OV_PRO = velocidadAnterior
-      ;ENDFOLD
-      ;FOLD Pintado exterior esparrago
-         TRIGGER WHEN PATH = 0 ONSTART DELAY = 0 DO autPaintON() PRIO = 108
-         $TOOL = TOOL_DATA[1] : laserFrames.screwBottom
-         SLIN $NULLFRAME WITH $VEL.CP = paintParameter[$RECIPE.recipeNum].vel2, $VEL.ORI1 = paintParameter[$RECIPE.recipeNum].velRot2, $VEL.ORI2 = paintParameter[$RECIPE.recipeNum].velRot2
-         autLamaparasOn()
-         WAIT SEC paintParameter[$RECIPE.recipeNum].tPaint3
-         TRIGGER WHEN PATH = 0 DELAY = 0 DO autPaintOFF() PRIO = 109
+            ;FOLD Pintado exterior cabeza
+         $TOOL = TOOL_DATA[1] : laserFrames.screwOuterHead
+         TRIGGER WHEN PATH = 0 ONSTART DELAY = 0 DO autPaintON() PRIO = 100
+         SPTP $NULLFRAME WITH $VEL.CP = paintParameter[$RECIPE.recipeNum].vel1, $VEL.ORI1 = paintParameter[$RECIPE.recipeNum].velRot1, $VEL.ORI2 = paintParameter[$RECIPE.recipeNum].velRot1
+         WAIT SEC paintParameter[$RECIPE.recipeNum].tPaint1 
+         TRIGGER WHEN PATH = 0 ONSTART DELAY = 0 DO autPaintOFF() PRIO = 101
       ;ENDFOLD
       
    ;ENDFOLD
