@@ -3,15 +3,15 @@
 &PARAM DISKPATH = KRC:\R1\Program\Work
 DEF  C2_CicloCompleto (limpieza:IN)
    BOOL bTornillo, limpieza
-   DECL INT velocidadAnterior,BUCLE_N_PASADAS_LASER
+   DECL INT velocidadAnterior,contadorPasadasLaser
    ;FOLD PROGRAM INFO --------------------------------------------------------
       ; Program: C2_CicloCompleto
       ; Description:
       ; Creation Date: 16/04/2024
-      ; Last Modification Date: 12/02/2025
+      ; Last Modification Date: 14/09/2025
       ; Author:   
       ;           Alexander Kalis
-      ;           Tekniker, C. Iñaki Goenaga, 5, 20600, Gipuzkoa
+      ;           Tekniker, C. IÃ±aki Goenaga, 5, 20600, Gipuzkoa
       ;           +34 674 05 15 10
       ;           alexander.kalis@tekniker.es
       ; Last modification Author: 
@@ -59,8 +59,7 @@ SPTP Xhtl1 WITH $VEL_AXIS[1] = SVEL_JOINT(100.0), $TOOL = STOOL2(Fhtl1), $BASE =
       ;ENDFOLD
       
       ;BUCLE DEPENDIENDO DEL NUMERO DE PASADAS
-      FOR BUCLE_N_PASADAS_LASER = 1 TO bN_Pasadas_Laser STEP 2
-         
+      FOR contadorPasadasLaser = 1 TO ByNPasadasLaser STEP 2
          ;FOLD Limpieza exterior cabeza
             $TOOL = TOOL_DATA[1] : laserFrames.screwOuterHead
             TRIGGER WHEN PATH = 0 ONSTART DELAY = 0 DO autLaserON() PRIO = 101
@@ -98,7 +97,7 @@ SPTP Xhtl1 WITH $VEL_AXIS[1] = SVEL_JOINT(100.0), $TOOL = STOOL2(Fhtl1), $BASE =
          ;ENDFOLD
          
          ;Vuelta con angulo negativo B->A
-         if bN_Pasadas_Laser>1 THEN
+         if ByNPasadasLaser > 1 THEN
             laserFrames = posCalcLaserSweepAngledN($RECIPE, $LAYOUT, 5)
             ;FOLD Limpieza perfil esparrago (punto B)
                $TOOL = TOOL_DATA[1] : laserFrames.screwProfileB
@@ -111,10 +110,10 @@ SPTP Xhtl1 WITH $VEL_AXIS[1] = SVEL_JOINT(100.0), $TOOL = STOOL2(Fhtl1), $BASE =
                
                $OV_PRO = velocidadAnterior
             ;ENDFOLD
-            IF ((bN_Pasadas_Laser-1)==(BUCLE_N_PASADAS_LASER)) THEN
+            IF ((ByNPasadasLaser - 1)==(contadorPasadasLaser)) THEN
                autLaserOFF()
                autMotorOff()
-               EXIT;
+               EXIT
             ENDIF
          ELSE
             autLaserOFF()
@@ -125,25 +124,6 @@ SPTP Xhtl1 WITH $VEL_AXIS[1] = SVEL_JOINT(100.0), $TOOL = STOOL2(Fhtl1), $BASE =
    ;ENDFOLD
    
    ;FOLD Path to Paint station
-;estos puntos estan comentados no se ejecutan
-      ;FOLD SPTP paint1 CONT Vel=100 % PDAT10 Tool[1]:pintxoEstatico Base[3]:pintura extTCP  ;%{PE}
-         ;FOLD Parameters ;%{h}
-            ;Params IlfProvider=kukaroboter.basistech.inlineforms.movement.spline; Kuka.IsGlobalPoint=False; Kuka.PointName=paint1; Kuka.BlendingEnabled=True; Kuka.MoveDataPtpName=PDAT10; Kuka.VelocityPtp=100; Kuka.VelocityFieldEnabled=True; Kuka.ColDetectFieldEnabled=True; Kuka.CurrentCDSetIndex=0; Kuka.MovementParameterFieldEnabled=True; IlfCommand=SPTP
-         ;ENDFOLD
-         ;SPTP Xpaint1 WITH $VEL_AXIS[1] = SVEL_JOINT(100.0), $TOOL = STOOL2(Fpaint1), $BASE = SBASE(Fpaint1.BASE_NO), $IPO_MODE = SIPO_MODE(Fpaint1.IPO_FRAME), $LOAD = SLOAD(Fpaint1.TOOL_NO), $ACC_AXIS[1] = SACC_JOINT(PPDAT10), $APO = SAPO_PTP(PPDAT10), $GEAR_JERK[1] = SGEAR_JERK(PPDAT10), $COLLMON_TOL_PRO[1] = USE_CM_PRO_VALUES(0) C_Spl
-      ;ENDFOLD
-      ;FOLD SPTP pait2 Vel=100 % PDAT11 Tool[1]:pintxoEstatico Base[3]:pintura extTCP  ;%{PE}
-         ;FOLD Parameters ;%{h}
-            ;Params IlfProvider=kukaroboter.basistech.inlineforms.movement.spline; Kuka.IsGlobalPoint=False; Kuka.PointName=pait2; Kuka.BlendingEnabled=False; Kuka.MoveDataPtpName=PDAT11; Kuka.VelocityPtp=100; Kuka.VelocityFieldEnabled=True; Kuka.ColDetectFieldEnabled=True; Kuka.CurrentCDSetIndex=0; Kuka.MovementParameterFieldEnabled=True; IlfCommand=SPTP
-         ;ENDFOLD
-         ;SPTP Xpait2 WITH $VEL_AXIS[1] = SVEL_JOINT(100.0), $TOOL = STOOL2(Fpait2), $BASE = SBASE(Fpait2.BASE_NO), $IPO_MODE = SIPO_MODE(Fpait2.IPO_FRAME), $LOAD = SLOAD(Fpait2.TOOL_NO), $ACC_AXIS[1] = SACC_JOINT(PPDAT11), $APO = SAPO_PTP(PPDAT11), $GEAR_JERK[1] = SGEAR_JERK(PPDAT11), $COLLMON_TOL_PRO[1] = USE_CM_PRO_VALUES(0)
-      ;ENDFOLD
-      ;FOLD SPTP pait3 Vel=100 % PDAT12 Tool[1]:pintxoEstatico Base[3]:pintura extTCP  ;%{PE}
-         ;FOLD Parameters ;%{h}
-            ;Params IlfProvider=kukaroboter.basistech.inlineforms.movement.spline; Kuka.IsGlobalPoint=False; Kuka.PointName=pait3; Kuka.BlendingEnabled=False; Kuka.MoveDataPtpName=PDAT12; Kuka.VelocityPtp=100; Kuka.VelocityFieldEnabled=True; Kuka.ColDetectFieldEnabled=True; Kuka.CurrentCDSetIndex=0; Kuka.MovementParameterFieldEnabled=True; IlfCommand=SPTP
-         ;ENDFOLD
-         ;SPTP Xpait3 WITH $VEL_AXIS[1] = SVEL_JOINT(100.0), $TOOL = STOOL2(Fpait3), $BASE = SBASE(Fpait3.BASE_NO), $IPO_MODE = SIPO_MODE(Fpait3.IPO_FRAME), $LOAD = SLOAD(Fpait3.TOOL_NO), $ACC_AXIS[1] = SACC_JOINT(PPDAT12), $APO = SAPO_PTP(PPDAT12), $GEAR_JERK[1] = SGEAR_JERK(PPDAT12), $COLLMON_TOL_PRO[1] = USE_CM_PRO_VALUES(0)
-      ;ENDFOLD
       
    ;ENDFOLD
    

@@ -884,7 +884,7 @@ SIGNAL ByPlaceOffsetX $IN[244]  TO $IN[251]
 SIGNAL ByPlaceOffsetY $IN[252]  TO $IN[259]
 SIGNAL ByPlaceOffsetZ $IN[260]  TO $IN[267]
 SIGNAL ByPresenciaPieza $IN[268]  TO $IN[275]
-SIGNAL bN_Pasadas_Laser $in[340]  TO $in[355] ; 
+SIGNAL ByNPasadasLaser $IN[340]  TO $IN[355]
 
 ;Words
 SIGNAL wLongitudTotal $IN[148]  TO $IN[163]
