@@ -1,0 +1,88 @@
+&ACCESS RVP
+&COMMENT HANDLER on external automatic
+DEF cell( )
+   ;EXT EXAMPLE1 ( )
+   ;EXT EXAMPLE2 ( )
+   ;EXT EXAMPLE3 ( )
+   
+   ;FOLD INIT
+      DECL CHAR DMY[3]
+      DMY[]="---"
+      autToolResetOut()
+   ;ENDFOLD (INIT)
+   ;FOLD BASISTECH INI
+      GLOBAL INTERRUPT DECL 3 WHEN $STOPMESS==TRUE DO IR_STOPM ( )
+      INTERRUPT ON 3 
+      BAS (#INITMOV,0 )
+   ;ENDFOLD (BASISTECH INI)
+   ;FOLD CHECK HOME
+      $H_POS=XHOME
+      IF CHECK_HOME==TRUE THEN
+         P00 (#CHK_HOME,#PGNO_GET,DMY[],0 ) ;Testing Home-Position 
+      ENDIF
+      Program_Number=0
+      $OUT[PGNO_REQ]=FALSE
+   ;ENDFOLD (CHECK HOME)
+   ;FOLD PTP HOME  Vel= 100 % DEFAULT;%{PE}%MKUKATPBASIS,%CMOVE,%VPTP,%P 1:PTP, 2:HOME, 3:, 5:100, 7:DEFAULT
+      $H_POS=XHOME
+      PDAT_ACT=PDEFAULT
+      BAS (#PTP_DAT )
+      FDAT_ACT=FHOME
+      BAS (#FRAMES )
+      BAS (#VEL_PTP,100 )
+      PTP  XHOME
+   ;ENDFOLD
+   ;FOLD AUTOEXT INI
+      P00 (#INIT_EXT,#PGNO_GET,DMY[],0 ) ; Initialize extern mode
+      $OUT[PGNO_REQ]=FALSE 
+   ;ENDFOLD (AUTOEXT INI)
+   LOOP
+      ;ENDFOLD
+      SWITCH Program_PLC ; Select with Programnumber
+         
+         CASE 1
+            Program_Number=1
+            C1_pickConveyorBP()
+            Program_Number=0
+         CASE 2
+            Program_Number=2
+            C2_CicloCompleto(TRUE)
+            Program_Number=0
+         CASE 3
+            Program_Number=3
+            C2_CicloCompleto(FALSE)
+            Program_Number=0
+            
+         CASE 99  
+            Program_Number=99           
+            wait sec 0.1
+            autToolResetOut()
+            Program_Number=0
+            
+         CASE 100
+            Program_Number=100
+            C100_maintenanceAxis0()
+            Program_Number=0
+            
+         CASE 101
+            Program_Number=101
+            C101_maintenanceOil()
+            Program_Number=0
+            
+         CASE 200
+            Program_Number=200
+            C200_gripperChange()
+            Program_Number=0
+            
+         CASE 201
+            Program_Number=201
+            C201_freePos()
+            Program_Number=0
+            
+         DEFAULT
+            wait sec 0.3
+            pulse($out[pgno_req],true,0.2)
+            ; P00 (#EXT_PGNO,#PGNO_FAULT,DMY[],0 )
+      ENDSWITCH
+   ENDLOOP
+END

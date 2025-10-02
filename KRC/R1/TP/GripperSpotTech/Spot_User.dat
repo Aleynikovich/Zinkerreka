@@ -1,0 +1,9 @@
+&ACCESS R1
+&REL 1
+&COMMENT GripperSpotTech package
+&PARAM KUKATPGRP_VERSION = 5.0
+&PARAM DISKPATH = KRC:\R1\TP\GripperSpotTech
+DEFDAT  Spot_User PUBLIC
+  ;Insert your modifications here
+  
+ENDDAT

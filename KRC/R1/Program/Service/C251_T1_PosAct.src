@@ -1,0 +1,17 @@
+&ACCESS RV
+DEF  C251_T1_PosAct ( )
+   ;FOLD INI;%{PE}
+      ;FOLD BASISTECH INI
+         GLOBAL INTERRUPT DECL 3 WHEN $STOPMESS==TRUE DO IR_STOPM ( )
+         INTERRUPT ON 3 
+         BAS (#INITMOV,0 )
+      ;ENDFOLD (BASISTECH INI)
+      ;FOLD USER INI
+         ;Make your modifications here
+         
+      ;ENDFOLD (USER INI)
+   ;ENDFOLD (INI)
+   IF $MODE_OP == #T1 THEN
+      SPTP $POS_ACT
+   ENDIF 
+END

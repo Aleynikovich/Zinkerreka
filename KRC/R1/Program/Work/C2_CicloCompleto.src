@@ -1,0 +1,241 @@
+&ACCESS RVO1
+&REL 153
+&PARAM DISKPATH = KRC:\R1\Program\Work
+DEF  C2_CicloCompleto (limpieza:IN)
+   BOOL bTornillo, limpieza
+   DECL INT velocidadAnterior,contadorPasadasLaser
+   ;FOLD PROGRAM INFO --------------------------------------------------------
+      ; Program: C2_CicloCompleto
+      ; Description:
+      ; Creation Date: 16/04/2024
+      ; Last Modification Date: 14/09/2025
+      ; Author:   
+      ;           Alexander Kalis
+      ;           Tekniker, C. Iñaki Goenaga, 5, 20600, Gipuzkoa
+      ;           +34 674 05 15 10
+      ;           alexander.kalis@tekniker.es
+      ; Last modification Author: 
+      ;           Alexander Kalis
+      ; Customer: Erreka S. COOP
+   ;ENDFOLD --------------------------------------------------------
+   ;FOLD INI;%{PE}
+      ;FOLD BASISTECH INI
+         GLOBAL INTERRUPT DECL 3 WHEN $STOPMESS==TRUE DO IR_STOPM ( )
+         INTERRUPT ON 3 
+         BAS (#INITMOV,0 )
+      ;ENDFOLD (BASISTECH INI)
+      
+      ;FOLD USER INI
+         ;Make your modifications here
+         bTornillo=$IN[139]
+         contadorPasadasLaser=0
+         laserFrames = posCalcLaserSweep($RECIPE, $LAYOUT)
+         laserFrames = posCalcLaserSweepAngledP($RECIPE, $LAYOUT, 5)
+         laserFrames = posCalcLaserSweepAngledN($RECIPE, $LAYOUT, 5)
+      ;ENDFOLD (USER INI)
+   ;ENDFOLD (INI)
+   
+   ;FOLD SPTP HOME CONT Vel=100 % DEFAULT ;%{PE}
+      ;FOLD Parameters ;%{h}
+         ;Params IlfProvider=kukaroboter.basistech.inlineforms.movement.spline; Kuka.IsGlobalPoint=False; Kuka.PointName=HOME; Kuka.BlendingEnabled=True; Kuka.MoveDataPtpName=DEFAULT; Kuka.VelocityPtp=100; Kuka.VelocityFieldEnabled=True; Kuka.ColDetectFieldEnabled=True; Kuka.CurrentCDSetIndex=0; Kuka.MovementParameterFieldEnabled=True; IlfCommand=SPTP
+      ;ENDFOLD
+      SPTP XHOME WITH $VEL_AXIS[1] = SVEL_JOINT(100.0), $TOOL = STOOL2(FHOME), $BASE = SBASE(FHOME.BASE_NO), $IPO_MODE = SIPO_MODE(FHOME.IPO_FRAME), $LOAD = SLOAD(FHOME.TOOL_NO), $ACC_AXIS[1] = SACC_JOINT(PDEFAULT), $APO = SAPO_PTP(PDEFAULT), $GEAR_JERK[1] = SGEAR_JERK(PDEFAULT), $COLLMON_TOL_PRO[1] = USE_CM_PRO_VALUES(0) C_Spl
+   ;ENDFOLD
+   
+   ;FOLD Path to laser station
+      IF limpieza THEN
+         ;FOLD SPTP PTL1 CONT Vel=100 % PDAT13 Tool[1]:pintxoEstatico Base[2]:laserTCP extTCP  ;%{PE}
+            ;FOLD Parameters ;%{h}
+               ;Params IlfProvider=kukaroboter.basistech.inlineforms.movement.spline; Kuka.IsGlobalPoint=False; Kuka.PointName=PTL1; Kuka.BlendingEnabled=True; Kuka.MoveDataPtpName=PDAT13; Kuka.VelocityPtp=100; Kuka.VelocityFieldEnabled=True; Kuka.ColDetectFieldEnabled=True; Kuka.CurrentCDSetIndex=0; Kuka.MovementParameterFieldEnabled=True; IlfCommand=SPTP
+            ;ENDFOLD
+            SPTP XPTL1 WITH $VEL_AXIS[1] = SVEL_JOINT(100.0), $TOOL = STOOL2(FPTL1), $BASE = SBASE(FPTL1.BASE_NO), $IPO_MODE = SIPO_MODE(FPTL1.IPO_FRAME), $LOAD = SLOAD(FPTL1.TOOL_NO), $ACC_AXIS[1] = SACC_JOINT(PPDAT13), $APO = SAPO_PTP(PPDAT13), $GEAR_JERK[1] = SGEAR_JERK(PPDAT13), $COLLMON_TOL_PRO[1] = USE_CM_PRO_VALUES(0) C_Spl
+         ;ENDFOLD
+   ;ENDFOLD
+   
+   ;FOLD LASER PROCESS
+      ;FOLD INIT barrido  
+         $TOOL = TOOL_DATA[1]
+         $BASE = BASE_DATA[2]
+         $IPO_MODE = #TCP                         
+      ;ENDFOLD
+      
+      ;BUCLE DEPENDIENDO DEL NUMERO DE PASADAS
+      
+      ;FOLD Limpieza exterior esparrago
+         $TOOL = TOOL_DATA[1] : laserFrames.screwBottom
+         TRIGGER WHEN PATH = 0 ONSTART DELAY = 0 DO autMotorON() PRIO = 101
+         TRIGGER WHEN PATH = 0 ONSTART DELAY = 0 DO autLaserON() PRIO = 102
+         SPTP $NULLFRAME:C2LaserOffset[$RECIPE.recipeNum].sBO WITH $VEL.CP = laserParameter[$RECIPE.recipeNum].vel2, $VEL.ORI1 = laserParameter[$RECIPE.recipeNum].velRot2, $VEL.ORI2 = laserParameter[$RECIPE.recipeNum].velRot2
+         WAIT SEC laserParameter[$RECIPE.recipeNum].tClean3
+      ;ENDFOLD       
+      ;FOLD Limpieza perfil esparrago (punto A)
+         $TOOL = TOOL_DATA[1] : laserFrames.screwProfileA
+         SLIN $NULLFRAME:C2LaserOffset[$RECIPE.recipeNum].sPAO WITH $VEL.CP = laserParameter[$RECIPE.recipeNum].vel1, $VEL.ORI1 = laserParameter[$RECIPE.recipeNum].velRot1, $VEL.ORI2 = laserParameter[$RECIPE.recipeNum].velRot1
+      ;ENDFOLD
+      ;FOLD Limpieza perfil esparrago (punto B)
+         velocidadAnterior = $OV_PRO
+         $OV_PRO = 100
+         $TOOL = TOOL_DATA[1] : laserFrames.screwProfileB
+         SLIN $NULLFRAME:C2LaserOffset[$RECIPE.recipeNum].sPBO WITH $VEL.CP = laserParameter[$RECIPE.recipeNum].velSweep, $VEL.ORI1 = laserParameter[$RECIPE.recipeNum].velRot1, $VEL.ORI2 = laserParameter[$RECIPE.recipeNum].velRot1
+         $OV_PRO = velocidadAnterior
+      ;ENDFOLD
+      contadorPasadasLaser=contadorPasadasLaser+1
+      IF (bTornillo) THEN 
+         ;FOLD Limpieza perfil cabeza
+            $TOOL = TOOL_DATA[1] : laserFrames.screwHex
+            SLIN $NULLFRAME:C2LaserOffset[$RECIPE.recipeNum].sHO WITH $VEL.CP = laserParameter[$RECIPE.recipeNum].vel1, $VEL.ORI1 = laserParameter[$RECIPE.recipeNum].velRot1, $VEL.ORI2 = laserParameter[$RECIPE.recipeNum].velRot1
+            WAIT SEC laserParameter[$RECIPE.recipeNum].tHex
+         ;ENDFOLD
+         ;FOLD Limpieza interior cabeza
+            $TOOL = TOOL_DATA[1] : laserFrames.screwInnerHead
+            SLIN $NULLFRAME:C2LaserOffset[$RECIPE.recipeNum].sIHO WITH $VEL.CP = laserParameter[$RECIPE.recipeNum].vel1, $VEL.ORI1 = laserParameter[$RECIPE.recipeNum].velRot1, $VEL.ORI2 = laserParameter[$RECIPE.recipeNum].velRot1
+            WAIT SEC laserParameter[$RECIPE.recipeNum].tClean2
+         ;ENDFOLD
+      ENDIF
+      
+      ;FOLD Limpieza exterior cabeza
+         $TOOL = TOOL_DATA[1] : laserFrames.screwOuterHead
+         SLIN $NULLFRAME:C2LaserOffset[$RECIPE.recipeNum].sOHO WITH $VEL.CP = laserParameter[$RECIPE.recipeNum].vel1, $VEL.ORI1 = laserParameter[$RECIPE.recipeNum].velRot1, $VEL.ORI2 = laserParameter[$RECIPE.recipeNum].velRot1
+         WAIT SEC laserParameter[$RECIPE.recipeNum].tClean1
+      ;ENDFOLD
+      ;Vuelta con angulo negativo B->A
+      WHILE (ByNPasadasLaser > contadorPasadasLaser) 
+         ;FOLD Limpieza perfil esparrago (punto B)
+            $TOOL = TOOL_DATA[1] : laserFrames.screwProfileB
+            SLIN $NULLFRAME:C2LaserOffset[$RECIPE.recipeNum].sPBO WITH $VEL.CP = laserParameter[$RECIPE.recipeNum].vel1, $VEL.ORI1 = laserParameter[$RECIPE.recipeNum].velRot1, $VEL.ORI2 = laserParameter[$RECIPE.recipeNum].velRot1
+         ;ENDFOLD
+         ;FOLD Limpieza perfil esparrago (punto A)
+            $TOOL = TOOL_DATA[1] : laserFrames.screwProfileA
+            SLIN $NULLFRAME:C2LaserOffset[$RECIPE.recipeNum].sPAO WITH $VEL.CP = laserParameter[$RECIPE.recipeNum].velSweep, $VEL.ORI1 = laserParameter[$RECIPE.recipeNum].velRot1, $VEL.ORI2 = laserParameter[$RECIPE.recipeNum].velRot1
+         ;ENDFOLD    
+         contadorPasadasLaser = contadorPasadasLaser + 1
+      ENDWHILE
+      autLaserOFF()
+      autMotorOff()
+      ENDIF
+   ;ENDFOLD
+   
+   ;FOLD Path to Paint station
+      ;FOLD SPTP LTP1 CONT Vel=100 % PDAT17 Tool[1]:pintxoEstatico Base[3]:pintura ;%{PE}
+         ;FOLD Parameters ;%{h}
+            ;Params IlfProvider=kukaroboter.basistech.inlineforms.movement.spline; Kuka.IsGlobalPoint=False; Kuka.PointName=LTP1; Kuka.BlendingEnabled=True; Kuka.MoveDataPtpName=PDAT17; Kuka.VelocityPtp=100; Kuka.VelocityFieldEnabled=True; Kuka.ColDetectFieldEnabled=True; Kuka.CurrentCDSetIndex=0; Kuka.MovementParameterFieldEnabled=True; IlfCommand=SPTP
+         ;ENDFOLD
+         SPTP XLTP1 WITH $VEL_AXIS[1] = SVEL_JOINT(100.0), $TOOL = STOOL2(FLTP1), $BASE = SBASE(FLTP1.BASE_NO), $IPO_MODE = SIPO_MODE(FLTP1.IPO_FRAME), $LOAD = SLOAD(FLTP1.TOOL_NO), $ACC_AXIS[1] = SACC_JOINT(PPDAT17), $APO = SAPO_PTP(PPDAT17), $GEAR_JERK[1] = SGEAR_JERK(PPDAT17), $COLLMON_TOL_PRO[1] = USE_CM_PRO_VALUES(0) C_Spl
+      ;ENDFOLD
+      
+   ;ENDFOLD
+   
+   ;FOLD PAINT PROCESS
+      
+      ;FOLD INIT barrido  
+         $TOOL = TOOL_DATA[1]
+         $BASE = BASE_DATA[3]
+         $IPO_MODE = #TCP                         
+      ;ENDFOLD 
+      
+      ;FOLD Pintado exterior esparrago
+         TRIGGER WHEN PATH = 0 DELAY = -250 DO autPaintON() PRIO = 108
+         TRIGGER WHEN PATH = 0 ONSTART DELAY = 0 DO autMotorOn() PRIO = 109 
+         $TOOL = TOOL_DATA[1] : laserFrames.screwBottom
+         SPTP $NULLFRAME WITH $VEL.CP = paintParameter[$RECIPE.recipeNum].vel2, $VEL.ORI1 = paintParameter[$RECIPE.recipeNum].velRot2, $VEL.ORI2 = paintParameter[$RECIPE.recipeNum].velRot2
+         WAIT SEC paintParameter[$RECIPE.recipeNum].tPaint1
+         TRIGGER WHEN PATH = 0 ONSTART DELAY = 0 DO autPaintOFF() PRIO = 110
+      ;ENDFOLD
+      ;FOLD Pintado perfil esparrago (punto A)
+         velocidadAnterior = $OV_PRO
+         $TOOL = TOOL_DATA[1] : laserFrames.screwProfileA
+         TRIGGER WHEN PATH = 0 DELAY = 0 DO autPaintON() PRIO = 111
+         WAIT SEC 1.6
+         SLIN $NULLFRAME WITH $VEL.CP = paintParameter[$RECIPE.recipeNum].vel1, $VEL.ORI1 = paintParameter[$RECIPE.recipeNum].velRot1, $VEL.ORI2 = paintParameter[$RECIPE.recipeNum].velRot1
+         $OV_PRO = 100
+      ;ENDFOLD
+      ;FOLD Pintado perfil esparrago (punto B)
+         $TOOL = TOOL_DATA[1] : laserFrames.screwProfileB
+         SLIN $NULLFRAME  WITH $VEL.CP = paintParameter[$RECIPE.recipeNum].velSweep, $VEL.ORI1 = paintParameter[$RECIPE.recipeNum].velRot1, $VEL.ORI2 = paintParameter[$RECIPE.recipeNum].velRot1
+         TRIGGER WHEN PATH = 0 ONSTART DELAY = 0 DO autPaintOFF() PRIO = 112
+         $OV_PRO = velocidadAnterior
+      ;ENDFOLD
+      IF (bTornillo) THEN
+         ;FOLD Pintado perfil cabeza
+            TRIGGER WHEN PATH = 0 DELAY = 0 DO autPaintON() PRIO = 113
+            $TOOL = TOOL_DATA[1] : laserFrames.screwHex
+            SLIN $NULLFRAME  WITH $VEL.CP = paintParameter[$RECIPE.recipeNum].vel1, $VEL.ORI1 = paintParameter[$RECIPE.recipeNum].velRot1, $VEL.ORI2 = paintParameter[$RECIPE.recipeNum].velRot1
+            WAIT SEC paintParameter[$RECIPE.recipeNum].tHex
+            TRIGGER WHEN PATH = 0 ONSTART DELAY = 0 DO autPaintOFF() PRIO = 114
+         ;ENDFOLD
+         ;FOLD Pintado interior cabeza
+            TRIGGER WHEN PATH = 0 DELAY = 0 DO autPaintON() PRIO = 115
+            $TOOL = TOOL_DATA[1] : laserFrames.screwInnerHead
+            SLIN $NULLFRAME  WITH $VEL.CP = paintParameter[$RECIPE.recipeNum].vel1, $VEL.ORI1 = paintParameter[$RECIPE.recipeNum].velRot1, $VEL.ORI2 = paintParameter[$RECIPE.recipeNum].velRot1
+            WAIT SEC paintParameter[$RECIPE.recipeNum].tPaint2
+            TRIGGER WHEN PATH = 0 ONSTART DELAY = 0 DO autPaintOFF() PRIO = 116
+         ;ENDFOLD
+      ENDIF
+      ;FOLD Pintado exterior cabeza
+         $TOOL = TOOL_DATA[1] : laserFrames.screwOuterHead
+         TRIGGER WHEN PATH = 0 DELAY = 0 DO autPaintON() PRIO = 117
+         SPTP $NULLFRAME WITH $VEL.CP = paintParameter[$RECIPE.recipeNum].vel1, $VEL.ORI1 = paintParameter[$RECIPE.recipeNum].velRot1, $VEL.ORI2 = paintParameter[$RECIPE.recipeNum].velRot1
+         WAIT SEC paintParameter[$RECIPE.recipeNum].tPaint3
+         TRIGGER WHEN PATH = 0 ONSTART DELAY = 0 DO autPaintOFF() PRIO = 118
+         autLamaparasOn()
+      ;ENDFOLD
+      
+   ;ENDFOLD
+   
+   ;FOLD Path to wait Zone
+      ;FOLD SPTP p10 CONT Vel=100 % PDAT8 Tool[1]:pintxoEstatico Base[4]:lamparas ;%{PE}
+         ;FOLD Parameters ;%{h}
+            ;Params IlfProvider=kukaroboter.basistech.inlineforms.movement.spline; Kuka.IsGlobalPoint=False; Kuka.PointName=p10; Kuka.BlendingEnabled=True; Kuka.MoveDataPtpName=PDAT8; Kuka.VelocityPtp=100; Kuka.VelocityFieldEnabled=True; Kuka.ColDetectFieldEnabled=True; Kuka.CurrentCDSetIndex=0; Kuka.MovementParameterFieldEnabled=True; IlfCommand=SPTP
+         ;ENDFOLD
+         SPTP Xp10 WITH $VEL_AXIS[1] = SVEL_JOINT(100.0), $TOOL = STOOL2(Fp10), $BASE = SBASE(Fp10.BASE_NO), $IPO_MODE = SIPO_MODE(Fp10.IPO_FRAME), $LOAD = SLOAD(Fp10.TOOL_NO), $ACC_AXIS[1] = SACC_JOINT(PPDAT8), $APO = SAPO_PTP(PPDAT8), $GEAR_JERK[1] = SGEAR_JERK(PPDAT8), $COLLMON_TOL_PRO[1] = USE_CM_PRO_VALUES(0) C_Spl
+      ;ENDFOLD
+      
+   ;ENDFOLD
+   
+   ;FOLD Path to DRYZONE
+      petitionPermission(bPetEntradaLamparas, bPermisoEntradaLamparas)
+   ;ENDFOLD
+   
+   ;FOLD Drying Process
+      ;FOLD INIT barrido  
+         $TOOL = TOOL_DATA[1]
+         $BASE = BASE_DATA[4]
+         $IPO_MODE = #BASE
+         dryPos = posCalcDry($RECIPE, $LAYOUT)
+      ;ENDFOLD
+      SLIN dryPos:dryAppOffset C_DIS
+      SLIN dryPos WITH $VEL.CP = 3
+      WAIT SEC tiempoSecado
+      autMotorOff()
+      autLamparasOff()
+      SLIN dryPos:dryAppOffset C_DIS
+   ;ENDFOLD
+   
+   ;FOLD Place Process
+      petitionPermission(bPetEntradaDejarIND, bPermisoEntradaIND)
+      
+      ;FOLD INIT place
+         $TOOL             =  TOOL_DATA[1]
+         $BASE             =  BASE_DATA[5]
+         placePos          =  $NULLPOS : posCalcPlaceIND($RECIPE, $LAYOUT)
+         placeYOffset.Y    =  -5
+      ;ENDFOLD
+      
+      SLIN placePos : mechanicalOffset : $RECIPE.PiO                     ;Punto de dejada
+      autGripperOpen() 
+      SLIN placePos : placeYOffset : mechanicalOffset : $RECIPE.PiO       ;Punto de dejada con movimiento lateral
+      SLIN_REL {Z 300}  C_SPL  
+   ;ENDFOLD
+   
+   ;FOLD Path to home
+      
+   ;ENDFOLD
+   
+   ;FOLD SPTP HOME Vel=100 % DEFAULT ;%{PE}
+      ;FOLD Parameters ;%{h}
+         ;Params IlfProvider=kukaroboter.basistech.inlineforms.movement.spline; Kuka.IsGlobalPoint=False; Kuka.PointName=HOME; Kuka.BlendingEnabled=False; Kuka.MoveDataPtpName=DEFAULT; Kuka.VelocityPtp=100; Kuka.VelocityFieldEnabled=True; Kuka.CurrentCDSetIndex=0; Kuka.MovementParameterFieldEnabled=True; IlfCommand=SPTP
+      ;ENDFOLD
+      SPTP XHOME WITH $VEL_AXIS[1] = SVEL_JOINT(100.0), $TOOL = STOOL2(FHOME), $BASE = SBASE(FHOME.BASE_NO), $IPO_MODE = SIPO_MODE(FHOME.IPO_FRAME), $LOAD = SLOAD(FHOME.TOOL_NO), $ACC_AXIS[1] = SACC_JOINT(PDEFAULT), $APO = SAPO_PTP(PDEFAULT), $GEAR_JERK[1] = SGEAR_JERK(PDEFAULT), $COLLMON_TOL_PRO[1] = USE_CM_PRO_VALUES(0)
+   ;ENDFOLD
+   
+END

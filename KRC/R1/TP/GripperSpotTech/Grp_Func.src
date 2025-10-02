@@ -1,0 +1,1149 @@
+&ACCESS R2
+&REL 1
+&COMMENT GripperSpotTech package
+&PARAM KUKATPGRP_VERSION = 5.0
+&PARAM DISKPATH = KRC:\R1\TP\GripperSpotTech
+DEF Grp_Func ()
+  ;#############################################
+  ;# File-Version: 1.1                         #
+  ;# Copyright (c) KUKA Deutschland GmbH 2020  #
+  ;#############################################
+END; (Grp_Func)
+
+;*********************************
+GLOBAL DEF GRPg_ChkSetStatePLC ()
+  INT iTmpGrpNo,iTmpStateNo
+  BOOL bSuccess
+  
+  IF GRPg_ProcessData.ReqState > 0 THEN
+    iTmpGrpNo=GRPg_ProcessData.ActGrp
+    iTmpStateNo=GRPg_ProcessData.ReqState
+    
+    bSuccess= GRP_bCheckGrpLogic (iTmpGrpNo, iTmpStateNo)
+    IF (NOT bSuccess) THEN
+      GRPg_ProcessData.ActGrp = 0
+      GRPg_ProcessData.ReqState = 0
+      RETURN
+    ENDIF
+    
+    bSuccess=GRP_bCheckAllCond (iTmpGrpNo, iTmpStateNo)
+    IF (NOT bSuccess) THEN
+      GRPg_ProcessData.ReqState = 0
+      RETURN
+    ENDIF
+    ;Ok SetState and Reset ReqState
+    GRPg_SetState(iTmpGrpNo,iTmpStateNo,FALSE,FALSE)
+    GRPg_ProcessData.ReqState = 0
+  ENDIF
+END; (GRPg_ChkSetStatePLC)
+
+;*********************************
+GLOBAL DEF GRPg_SetStateAndCheck (iGrpNo:IN, iStNo:IN, rWaitTime:IN, iCheckAndStrategy:IN)
+  ;call from ILF Set-Gripper without CONT
+  INT iGrpNo, iStNo, iCheckAndStrategy
+  REAL rWaitTime
+  
+  ;1) Stop Advance
+  WAIT FOR TRUE
+  GRP_USR_PreSetStAndChk (iGrpNo, iStNo,rWaitTime,iCheckAndStrategy)
+  
+  ;2) Set gripper
+  Grp_bSetWithCheck=TRUE; FLAG for Monitoring
+  GRPg_SetState (iGrpNo,iStNo,true,true)
+  PrepareStData(iGrpNo, iStNo,iCheckAndStrategy); Prepare State
+  
+  ;3) Wait if t > 0
+  IF (rWaitTime>0) THEN
+    WAIT SEC rWaitTime
+  ENDIF
+  
+  ;4) Check state if configured
+  IF iCheckAndStrategy > 0 THEN
+    GRPg_CheckWithTimeOut (iGrpNo, iStNo, iCheckAndStrategy)
+  ENDIF
+  
+  GRP_USR_PostSetStAndChk (iGrpNo, iStNo,rWaitTime,iCheckAndStrategy)
+  
+  ;5) Stop Advance
+  WAIT FOR TRUE
+  GRP_PreGrp[iGrpNo].bMonIsTempOff=FALSE; Activate Monitoring
+END; (GRPg_SetStateAndCheck)
+
+;*********************************
+GLOBAL DEF GRPg_SetState (iGrpNo:IN,iStNo:IN,bWithSetLoad:IN,bSetDLoad:IN)
+  ;call from ILF "Gripper SET" with CONT
+  ;call from ILF "Gripper SYN SET"
+  ;call from Func GRPg_SetStateAndCheck
+  ;call from statkey
+  INT iGrpNo, iStNo, iGrpOut[16], iGrpVal[16], i
+  BOOL bSetDLoad,bWithSetLoad,bWithChgLoad,bSetWithDLoad,bGrpGhOut[16]
+  
+  ON_ERROR_PROCEED
+  bWithChgLoad=bWithSetLoad
+  IF $ERR.NUMBER<>0 THEN
+    ERR_CLEAR($ERR)
+    bWithChgLoad=TRUE
+  ENDIF  
+  
+  ON_ERROR_PROCEED
+  bSetWithDLoad=bSetDLoad
+  IF $ERR.NUMBER<>0 THEN
+    ERR_CLEAR($ERR)
+    bSetWithDLoad=FALSE
+  ENDIF 
+  
+  IsGhostModeOn()
+  IF GRP_PreGrp[iGrpNo].bMonOffNextState THEN
+    GRPG_SetMon(#OFF,iGrpNo)
+    GRP_PreGrp[iGrpNo].bMonOffNextState = False
+  ELSE
+    GRP_PreGrp[iGrpNo].bMonIsTempOff=TRUE; Deactivate Monitoring
+  ENDIF
+  GRP_USR_PreSetState (iGrpNo, iStNo)
+  
+  ;Read configured outputs
+  iGrpOut[1]=GRPg_Grp[iGrpNo].Out1
+  iGrpOut[2]=GRPg_Grp[iGrpNo].Out2
+  iGrpOut[3]=GRPg_Grp[iGrpNo].Out3
+  iGrpOut[4]=GRPg_Grp[iGrpNo].Out4
+  iGrpOut[5]=GRPg_Grp[iGrpNo].Out5
+  iGrpOut[6]=GRPg_Grp[iGrpNo].Out6
+  iGrpOut[7]=GRPg_Grp[iGrpNo].Out7
+  iGrpOut[8]=GRPg_Grp[iGrpNo].Out8
+  iGrpOut[9]=GRPg_Grp[iGrpNo].Out9
+  iGrpOut[10]=GRPg_Grp[iGrpNo].Out10
+  iGrpOut[11]=GRPg_Grp[iGrpNo].Out11
+  iGrpOut[12]=GRPg_Grp[iGrpNo].Out12
+  iGrpOut[13]=GRPg_Grp[iGrpNo].Out13
+  iGrpOut[14]=GRPg_Grp[iGrpNo].Out14
+  iGrpOut[15]=GRPg_Grp[iGrpNo].Out15
+  iGrpOut[16]=GRPg_Grp[iGrpNo].Out16
+  
+  ;read configured output values (Integer)
+  iGrpVal[1]=GRPg_State[iGrpNo,iStNo].Out1
+  iGrpVal[2]=GRPg_State[iGrpNo,iStNo].Out2
+  iGrpVal[3]=GRPg_State[iGrpNo,iStNo].Out3
+  iGrpVal[4]=GRPg_State[iGrpNo,iStNo].Out4
+  iGrpVal[5]=GRPg_State[iGrpNo,iStNo].Out5
+  iGrpVal[6]=GRPg_State[iGrpNo,iStNo].Out6
+  iGrpVal[7]=GRPg_State[iGrpNo,iStNo].Out7
+  iGrpVal[8]=GRPg_State[iGrpNo,iStNo].Out8
+  iGrpVal[9]=GRPg_State[iGrpNo,iStNo].Out9
+  iGrpVal[10]=GRPg_State[iGrpNo,iStNo].Out10
+  iGrpVal[11]=GRPg_State[iGrpNo,iStNo].Out11
+  iGrpVal[12]=GRPg_State[iGrpNo,iStNo].Out12
+  iGrpVal[13]=GRPg_State[iGrpNo,iStNo].Out13
+  iGrpVal[14]=GRPg_State[iGrpNo,iStNo].Out14
+  iGrpVal[15]=GRPg_State[iGrpNo,iStNo].Out15
+  iGrpVal[16]=GRPg_State[iGrpNo,iStNo].Out16
+  
+  ;read configured ghost configuration (Integer)
+  bGrpGhOut[1]=GRPg_GrpPar[iGrpNo].GhOut1
+  bGrpGhOut[2]=GRPg_GrpPar[iGrpNo].GhOut2
+  bGrpGhOut[3]=GRPg_GrpPar[iGrpNo].GhOut3
+  bGrpGhOut[4]=GRPg_GrpPar[iGrpNo].GhOut4
+  bGrpGhOut[5]=GRPg_GrpPar[iGrpNo].GhOut5
+  bGrpGhOut[6]=GRPg_GrpPar[iGrpNo].GhOut6
+  bGrpGhOut[7]=GRPg_GrpPar[iGrpNo].GhOut7
+  bGrpGhOut[8]=GRPg_GrpPar[iGrpNo].GhOut8
+  bGrpGhOut[9]=GRPg_GrpPar[iGrpNo].GhOut9
+  bGrpGhOut[10]=GRPg_GrpPar[iGrpNo].GhOut10
+  bGrpGhOut[11]=GRPg_GrpPar[iGrpNo].GhOut11
+  bGrpGhOut[12]=GRPg_GrpPar[iGrpNo].GhOut12
+  bGrpGhOut[13]=GRPg_GrpPar[iGrpNo].GhOut13
+  bGrpGhOut[14]=GRPg_GrpPar[iGrpNo].GhOut14
+  bGrpGhOut[15]=GRPg_GrpPar[iGrpNo].GhOut15
+  bGrpGhOut[16]=GRPg_GrpPar[iGrpNo].GhOut16
+  
+  ;Now set the output as configured
+  FOR i=1 TO GRPg_Grp[iGrpNo].NumOut
+    ;check OutputNo And GhostMode with GhostConfiguration
+    IF ((iGrpOut[i] == 0) OR (GRP_bGhostIsOn AND bGrpGhOut[i])) THEN
+      iGrpVal[i]=0
+    ENDIF
+    SWITCH  iGrpVal[i]
+      CASE -2
+        CONTINUE
+        PULSE ($OUT[iGrpOut[i]],FALSE,GRPg_GrpPar[iGrpNo].PulsLen)
+      CASE -1
+        CONTINUE
+        $OUT[iGrpOut[i]]=FALSE
+      CASE 0
+        ;do nothing (iGrpVal[i] = 0)
+      CASE 1
+        CONTINUE
+        $OUT[iGrpOut[i]]=TRUE
+      CASE 2
+        CONTINUE
+        PULSE ($OUT[iGrpOut[i]],TRUE,GRPg_GrpPar[iGrpNo].PulsLen)
+      DEFAULT
+        ;es ist ein Signalwert: Wert ConfigWert 101 --> SignalWert 1, ConfigWert 5896 --> SignalWert 5796 (Mit Offset 100 oder 10) 1000000
+        CONTINUE
+        Grp_SetSignal(iGrpOut[i],iGrpVal[i])
+    ENDSWITCH
+  ENDFOR
+  
+  IF bWithChgLoad THEN
+    ;Set Load Data
+    GRP_SetLoad(iGrpNo,iStNo,bSetWithDLoad)
+  ELSE
+    ;do nothing
+  ENDIF
+  GRPg_ProcessData.LastGrpNo = iGrpNo
+  GRPg_ProcessData.LastStNo = iStNo
+  
+  IF Grp_bSetWithCheck THEN
+    Grp_bSetWithCheck= FALSE; Activate Monitoring will be done in SetStateAndCheck()
+  ELSE
+    PrepareStData(iGrpNo, iStNo); Prepare State
+    GRP_PreGrp[iGrpNo].bMonIsTempOff=FALSE
+  ENDIF
+  GRP_USR_PostSetState (iGrpNo, iStNo)
+END; (GRPg_SetState)
+
+;*********************************
+DEF PrepareStData (iGrpNo:IN, iStNo:IN,iErrStrategy:IN)
+  ;This function prepares state informations
+  INT iGrpNo,iStNo,iErrStrategy, i
+  
+  ;Which Inputs are configured for the grp
+  GRP_PreState[iGrpNo,1].iGrpIn=GRPg_Grp[iGrpNo].In1
+  GRP_PreState[iGrpNo,2].iGrpIn=GRPg_Grp[iGrpNo].In2
+  GRP_PreState[iGrpNo,3].iGrpIn=GRPg_Grp[iGrpNo].In3
+  GRP_PreState[iGrpNo,4].iGrpIn=GRPg_Grp[iGrpNo].In4
+  GRP_PreState[iGrpNo,5].iGrpIn=GRPg_Grp[iGrpNo].In5
+  GRP_PreState[iGrpNo,6].iGrpIn=GRPg_Grp[iGrpNo].In6
+  GRP_PreState[iGrpNo,7].iGrpIn=GRPg_Grp[iGrpNo].In7
+  GRP_PreState[iGrpNo,8].iGrpIn=GRPg_Grp[iGrpNo].In8
+  GRP_PreState[iGrpNo,9].iGrpIn=GRPg_Grp[iGrpNo].In9
+  GRP_PreState[iGrpNo,10].iGrpIn=GRPg_Grp[iGrpNo].In10
+  GRP_PreState[iGrpNo,11].iGrpIn=GRPg_Grp[iGrpNo].In11
+  GRP_PreState[iGrpNo,12].iGrpIn=GRPg_Grp[iGrpNo].In12
+  GRP_PreState[iGrpNo,13].iGrpIn=GRPg_Grp[iGrpNo].In13
+  GRP_PreState[iGrpNo,14].iGrpIn=GRPg_Grp[iGrpNo].In14
+  GRP_PreState[iGrpNo,15].iGrpIn=GRPg_Grp[iGrpNo].In15
+  GRP_PreState[iGrpNo,16].iGrpIn=GRPg_Grp[iGrpNo].In16
+  
+  ;read configured Input values (Integer) for this state
+  GRP_PreState[iGrpNo,1].iStInVal=GRPg_State[iGrpNo,iStNo].In1
+  GRP_PreState[iGrpNo,2].iStInVal=GRPg_State[iGrpNo,iStNo].In2
+  GRP_PreState[iGrpNo,3].iStInVal=GRPg_State[iGrpNo,iStNo].In3
+  GRP_PreState[iGrpNo,4].iStInVal=GRPg_State[iGrpNo,iStNo].In4
+  GRP_PreState[iGrpNo,5].iStInVal=GRPg_State[iGrpNo,iStNo].In5
+  GRP_PreState[iGrpNo,6].iStInVal=GRPg_State[iGrpNo,iStNo].In6
+  GRP_PreState[iGrpNo,7].iStInVal=GRPg_State[iGrpNo,iStNo].In7
+  GRP_PreState[iGrpNo,8].iStInVal=GRPg_State[iGrpNo,iStNo].In8
+  GRP_PreState[iGrpNo,9].iStInVal=GRPg_State[iGrpNo,iStNo].In9 
+  GRP_PreState[iGrpNo,10].iStInVal=GRPg_State[iGrpNo,iStNo].In10
+  GRP_PreState[iGrpNo,11].iStInVal=GRPg_State[iGrpNo,iStNo].In11
+  GRP_PreState[iGrpNo,12].iStInVal=GRPg_State[iGrpNo,iStNo].In12
+  GRP_PreState[iGrpNo,13].iStInVal=GRPg_State[iGrpNo,iStNo].In13 
+  GRP_PreState[iGrpNo,14].iStInVal=GRPg_State[iGrpNo,iStNo].In14
+  GRP_PreState[iGrpNo,15].iStInVal=GRPg_State[iGrpNo,iStNo].In15
+  GRP_PreState[iGrpNo,16].iStInVal=GRPg_State[iGrpNo,iStNo].In16
+  
+  ;read configured ghost configuration
+  GRP_PreState[iGrpNo,1].bGhost=GRPg_GrpPar[iGrpNo].GhIn1
+  GRP_PreState[iGrpNo,2].bGhost=GRPg_GrpPar[iGrpNo].GhIn2
+  GRP_PreState[iGrpNo,3].bGhost=GRPg_GrpPar[iGrpNo].GhIn3
+  GRP_PreState[iGrpNo,4].bGhost=GRPg_GrpPar[iGrpNo].GhIn4
+  GRP_PreState[iGrpNo,5].bGhost=GRPg_GrpPar[iGrpNo].GhIn5
+  GRP_PreState[iGrpNo,6].bGhost=GRPg_GrpPar[iGrpNo].GhIn6
+  GRP_PreState[iGrpNo,7].bGhost=GRPg_GrpPar[iGrpNo].GhIn7
+  GRP_PreState[iGrpNo,8].bGhost=GRPg_GrpPar[iGrpNo].GhIn8
+  GRP_PreState[iGrpNo,9].bGhost=GRPg_GrpPar[iGrpNo].GhIn9
+  GRP_PreState[iGrpNo,10].bGhost=GRPg_GrpPar[iGrpNo].GhIn10
+  GRP_PreState[iGrpNo,11].bGhost=GRPg_GrpPar[iGrpNo].GhIn11
+  GRP_PreState[iGrpNo,12].bGhost=GRPg_GrpPar[iGrpNo].GhIn12
+  GRP_PreState[iGrpNo,13].bGhost=GRPg_GrpPar[iGrpNo].GhIn13
+  GRP_PreState[iGrpNo,14].bGhost=GRPg_GrpPar[iGrpNo].GhIn14
+  GRP_PreState[iGrpNo,15].bGhost=GRPg_GrpPar[iGrpNo].GhIn15
+  GRP_PreState[iGrpNo,16].bGhost=GRPg_GrpPar[iGrpNo].GhIn16
+  
+  FOR i = 1 TO GRPg_MaxIn
+    ;Find out relevant Inputs
+    ;$IN: -1: False, +1: TRUE; 0: Ignore // Signal: 99: Ignore, >= 100 Wert (100: Alle False)
+    IF ((GRP_PreState[iGrpNo,i].iStInVal == 0) OR (GRP_PreState[iGrpNo,i].iStInVal == 99) OR (i > GRPg_Grp[iGrpNo].NumIn)) THEN 
+      ;Not relevant: set it as 1026 and bVal to "FALSE"
+      GRP_PreState[iGrpNo,i].iGrpIn = 1026; 1026 is ever "FALSE"
+      GRP_PreState[iGrpNo,i].bStInVal= FALSE
+    ELSE
+      ;relevant Input (>0): TRUE; (<0):FALSE
+      GRP_PreState[iGrpNo, i].bStInVal = (GRP_PreState[iGrpNo,i].iStInVal>0)
+    ENDIF
+  ENDFOR
+  
+  FOR i = 1 TO GRPg_MaxIn
+    ;Overwrite the state if Ghost is on and configured 
+    IF (GRP_bGhostIsOn AND GRP_PreState[iGrpNo,i].bGhost AND GRP_PreState[iGrpNo, i].bStInVal) THEN
+      ;Not relevant: set it as 1026 and bVal to "FALSE"
+      GRP_PreState[iGrpNo,i].iGrpIn = 1026; 1026 is ever "FALSE"
+      GRP_PreState[iGrpNo,i].bStInVal= FALSE
+    ENDIF
+  ENDFOR
+  
+  GRP_iPreGrpNo = iGrpNo
+  GRP_PreGrp[iGrpNo].iPreStNo = iStNo
+  
+  ON_ERROR_PROCEED
+  i=iErrStrategy
+  IF $ERR.NUMBER<>0 THEN
+    ERR_CLEAR($ERR)
+    iErrStrategy=0
+  ENDIF
+  
+  GRP_PreGrp[iGrpNo].iErrStrategy =iErrStrategy
+  
+END; (PrepareStData)
+
+;*********************************
+DEFFCT BOOL bIsStateOK (iGrpNo:IN, iStNo:IN)
+  ;This function checks the state
+  INT iGrpNo, iStNo, i, iSigValConf, iSigVal
+  BOOL bSuccess
+  
+  GRP_PreGrp[iGrpNo].iWrongIn=0
+  GRP_PreGrp[iGrpNo].iWrongSigIn=0
+  GRP_PreGrp[iGrpNo].iActVal = 0
+  GRP_PreGrp[iGrpNo].iDesVal = 0
+  
+  IF ((iGrpNo <> GRP_iPreGrpNo) OR (iStNo <>GRP_PreGrp[iGrpNo].iPreStNo)) THEN
+    ;IMPORTANT: Ensure "PrepareStData ()" is done before
+    WHILE TRUE
+      MsgQuit("UnexpectedError_Dialog",Grp_KxrModule[],,,11025,Grp_VLSTOP_LOG)
+      Signal2PLC(FALSE,GRPg_Err2PLC); Reset PLC Errorflag
+    ENDWHILE
+  ENDIF
+  bSuccess= TRUE
+  FOR i = 1 to GRPg_Grp[iGrpNo].NumIn
+    ;Signal or Input
+    CONTINUE
+    iSigValConf =ABS(GRP_PreState[iGrpNo,i].iStInVal)
+    IF iSigValConf>=100 THEN
+      iSigValConf=iSigValConf-100
+      iSigVal=Grp_iReadSigVal(GRP_PreState[iGrpNo,i].iGrpIn)
+      IF iSigValConf <>iSigVal THEN
+        GRP_PreGrp[iGrpNo].iWrongSigIn= GRP_PreState[iGrpNo,i].iGrpIn
+        GRP_PreGrp[iGrpNo].iWrongIn=0
+        GRPg_ProcessData.LastGrpNo = iGrpNo
+        GRPg_ProcessData.LastStNo = iStNo
+        GRP_PreGrp[iGrpNo].iActVal = iSigVal
+        GRP_PreGrp[iGrpNo].iDesVal = iSigValConf
+        bSuccess=FALSE
+        EXIT
+      ENDIF
+    ELSE
+      CONTINUE
+      IF ($IN[GRP_PreState[iGrpNo,i].iGrpIn] <> GRP_PreState[iGrpNo,i].bStInVal) THEN
+        GRP_PreGrp[iGrpNo].iWrongIn= GRP_PreState[iGrpNo,i].iGrpIn
+        GRP_PreGrp[iGrpNo].iWrongSigIn=0
+        GRPg_ProcessData.LastGrpNo = iGrpNo
+        GRPg_ProcessData.LastStNo = iStNo
+        bSuccess=FALSE
+        EXIT
+      ENDIF
+    ENDIF
+  ENDFOR
+  RETURN bSuccess
+ENDFCT; (bIsStateOK)
+
+;*********************************
+DEFFCT BOOL GRP_bCheckAllCond (iGrpNO: IN, iStNo:IN)
+  ;Check all conditions for manual operation 
+  INT iGrpNo,iStNo,Offset,iTemp
+  BOOL bStateSuccess,bInputSuccess,bFuncSuccess
+  CHAR STRDEST[5]
+  
+  ;1. Input Condition
+  bInputSuccess=TRUE
+  iTemp=GRPg_State[iGrpNo,iStNo].InputNo
+  IF (iTemp > 0) THEN
+    bInputSuccess=$IN [iTemp]
+    IF (NOT bInputSuccess) THEN
+      Offset=Grp_IntToString(STRDEST[],iTemp)
+      MsgNotify("InputStateNotOK",Grp_KxrModule[],iTemp,STRDEST[],11001,Grp_NOVLSTOP_LOG)
+    ENDIF
+  ENDIF
+  
+  ;2. State Condition
+  bStateSuccess=TRUE
+  iTemp=GRPg_State[iGrpNo,iStNo].StateNo 
+  IF (iTemp > 0) THEN
+    PrepareStData (iGrpNo,iTemp)
+    bStateSuccess=bIsStateOK (iGrpNo,iTemp)
+    PrepareStData (iGrpNo,iStNo)
+    IF (NOT bStateSuccess) THEN
+      Offset=Grp_IntToString(STRDEST[],iTemp)
+      MsgNotify("ConditionStateNotOK",Grp_KxrModule[],,STRDEST[],11002,Grp_NOVLSTOP_LOG)
+    ENDIF
+  ENDIF
+  
+  ;3. UserCondition
+  bFuncSuccess=TRUE
+  iTemp=GRPg_State[iGrpNo,iStNo].FuncNo
+  IF (iTemp > 0) THEN
+    bFuncSuccess=GRPg_UserCondition(iGrpNo, iStNo, iTemp)
+    IF (NOT bFuncSuccess) THEN
+      Offset=Grp_IntToString(STRDEST[],iTemp)
+      MsgNotify("FuncStateNotOK",Grp_KxrModule[],,STRDEST[],11003,Grp_NOVLSTOP_LOG)
+      ;RETURN
+    ENDIF
+  ENDIF
+  
+  IF (bStateSuccess AND bInputSuccess AND bFuncSuccess) THEN
+    ;Condition not configured or Ok
+    RETURN (TRUE)
+  ELSE
+    ;one or more condition not fulfilled
+    RETURN (FALSE)
+  ENDIF
+ENDFCT; (GRP_bCheckAllCond)
+
+;*********************************
+DEF IsGhostModeOn ()
+  ;Check the both flags for Ghost
+  INT iTmpInput
+  
+  GRP_bGhostIsOn=FALSE
+  iTmpInput = GRPg_GhostInput
+  
+  IF (iTmpInput < 1) THEN
+    iTmpInput = 1026 ;0: ever FALSE
+  ENDIF
+  
+  IF (GRPg_GhostMode) THEN
+    GRP_bGhostIsOn=TRUE
+    MsgNotify("GhostModeIsOn_Config",Grp_KxrModule[],,,11004,Grp_NOVLSTOP_LOG)
+  ENDIF
+  CONTINUE
+  IF ($IN[iTmpInput]) THEN
+    GRP_bGhostIsOn=TRUE
+    MsgNotify("GhostModeIsOn_Input",Grp_KxrModule[],,,11005,Grp_NOVLSTOP_LOG)
+  ENDIF
+END; (IsGhostModeOn)
+
+;*********************************
+DEF GRPg_CheckWithTimeOut (iGrpNo:IN ,iStNo:IN,iErrStrategy:IN)
+  ;# Call from function "GRPg_SetStateAndCheck"
+  
+  INT iGrpNo, iStNo, iTimeOut, iTempRobT, iTempMax, iErrStrategy
+  BOOL bSuccess, bRepeat, bTimeOut
+  
+  bRepeat=TRUE
+  bSuccess=FALSE
+  iTimeOut=GRPg_GrpPar[iGrpNo].TimeOut
+  
+  IsGhostModeOn()  
+  bSuccess=bIsStateOK (iGrpNo,iStNo) 
+  IF (bSuccess)  THEN
+    RETURN; State is fulfilled --> Return    
+  ENDIF
+  
+  WHILE bRepeat    
+    ;prepare iTempRobT for timeout
+    iTempMax = (2147483647 - (2 * iTimeOut))
+    IF ($ROB_TIMER > iTempMax) THEN
+      ;maxIntval (2147483647) --> (2 * iTimeOut)
+      MsgNotify("WaitForRobTimerIsReseted",Grp_KxrModule[],,,11006,Grp_NOVLSTOP_LOG)
+      WAIT SEC (3 * (iTimeOut/1000)); convert ms --> s 
+    ENDIF
+    
+    iTempRobT = $ROB_TIMER + (iTimeOut);1 tick = 1ms    
+    LOOP
+      bSuccess=bIsStateOK (iGrpNo,iStNo)
+      bTimeOut = ($ROB_TIMER > iTempRobT)
+      IF bSuccess THEN
+        ;CASE1- best Case State OK
+        EXIT 
+      ELSE
+        IF (bTimeOut)THEN
+          ;CASE2: Exit because time-out is over- State not OK
+          Signal2PLC(TRUE,GRPg_Err2PLC); Set PLC Errorflag
+          MsgNotify("StateNotOKTimeoutIsOver",Grp_KxrModule[],,,11007,Grp_NOVLSTOP_LOG)
+          EXIT
+        ENDIF
+      ENDIF
+    ENDLOOP
+    
+    IF bSuccess THEN
+      bRepeat=FALSE
+    ELSE
+      bRepeat=ErrorStrategy(iGrpNo,iStNo,iErrStrategy)
+    ENDIF
+  ENDWHILE ;bRepeat
+END ;(GRPg_CheckWithTimeOut)
+
+;*********************************
+GLOBAL DEF GRPg_Check (iGrpNo:IN ,iStNo:IN, bCont:IN, iErrStrategy:IN)
+  ;CALL from ILF "Gripper CHECK"
+  ;CALL from Interrupt-Routine
+  INT iGrpNo, iStNo, iErrStrategy
+  BOOL bSuccess, bRepeat, bCont
+  
+  bRepeat=TRUE
+  bSuccess=FALSE
+  
+  IsGhostModeOn()  
+  
+  GRP_USR_PreCheckState (iGrpNo,iStNo, bCont, iErrStrategy)
+  
+  IF (NOT bCont) THEN
+    WAIT FOR TRUE
+  ENDIF
+  
+  IF GRP_PreGrp[iGrpNo].bMonIsAct AND GRP_PreGrp[iGrpNo].bMonIsTempOff THEN
+    ;Nothing todo for PartMon
+  ELSE
+    bSuccess=bIsStateOK (iGrpNo,iStNo) 
+    GRP_USR_Post1CheckState (iGrpNo,iStNo, bSuccess)
+  ENDIF
+  
+  IF (bSuccess)  THEN
+    RETURN; State is fulfilled --> Return    
+  ENDIF
+  
+  WHILE bRepeat 
+    IF NOT bSuccess THEN
+      bRepeat=ErrorStrategy(iGrpNo,iStNo,iErrStrategy)
+    ENDIF
+    
+    IF bRepeat THEN
+      bSuccess=bIsStateOK (iGrpNo,iStNo)
+      IF bSuccess THEN
+        IF GRP_PreGrp[iGrpNo].bMonIsAct AND GRP_PreGrp[iGrpNo].bMonIsTempOff THEN
+          GRP_PreGrp[iGrpNo].bMonIsTempOff=FALSE
+        ENDIF
+        MsgNotify("StateIsOkContinue",Grp_KxrModule[],,,11009,Grp_NOVLSTOP_LOG)
+        EXIT
+      ENDIF
+    ENDIF
+  ENDWHILE
+  GRP_USR_Post2CheckState (iGrpNo,iStNo, bSuccess)
+END;(GRPg_Check)
+
+;*********************************
+GLOBAL DEF GRPg_SynCheck (iGrpNo:IN ,iStNo:IN, iErrStrategy:IN)
+  ;CALL from ILF "Gripper SYN CHECK"
+  INT iGrpNo, iStNo, iErrStrategy 
+  BOOL bSuccess, bRepeat
+  
+  bRepeat=TRUE
+  IsGhostModeOn()
+  
+  IF ((iGrpNo <> GRP_iPreGrpNo) OR (iStNo <> GRP_PreGrp[iGrpNo].iPreStNo)) THEN
+    PrepareStData (iGrpNo, iStNo,iErrStrategy)
+  ENDIF
+  
+  GRP_USR_PreSynCheck (iGrpNo,iStNo,iErrStrategy)
+  bSuccess=bIsStateOK (iGrpNo,iStNo) 
+  GRP_USR_Post1SynCheck(iGrpNo,iStNo, bSuccess)
+  
+  IF bSuccess THEN
+    RETURN; State is fulfilled Return
+  ELSE
+    BRAKE
+    Signal2PLC(TRUE,GRPg_Err2PLC); Set PLC Errorflag
+    MsgNotify("StartErrStrategy_SynCheck",Grp_KxrModule[],,,11011,Grp_NOVLSTOP_LOG)
+  ENDIF 
+  
+  WHILE bRepeat 
+    IF NOT bSuccess THEN
+      bRepeat=ErrorStrategy(iGrpNo,iStNo,iErrStrategy)
+    ENDIF
+    
+    IF bRepeat THEN
+      bSuccess=bIsStateOK (iGrpNo,iStNo)
+      IF bSuccess THEN
+        MsgNotify("StateIsOkContinue",Grp_KxrModule[],,,11010,Grp_NOVLSTOP_LOG)
+        EXIT
+      ENDIF
+    ENDIF
+  ENDWHILE
+  GRP_USR_Post2SynCheck(iGrpNo,iStNo, bSuccess)
+END;(GRPg_SynCheck)
+
+;*********************************
+DEFFCT BOOL GRP_bCheckGrpLogic(iGrpNo:IN, iStNo:IN)
+  ;Check gripper logically
+  INT iGrpNo, iStNo
+  
+  IF ((iGrpNo < 1) OR (iGrpNo > GRPg_MaxGrp)) THEN
+    MsgNotify("Err_GrpNoNotValid",Grp_KxrModule[],,,11026,Grp_NOVLSTOP_LOG)
+    RETURN(FALSE)
+  ENDIF  
+  
+  IF ((iStNo < 1) OR (iStNo > GRPg_Grp[iGrpNo].NumState) OR (iStNo > GRPg_MaxState))  THEN
+    MsgNotify("Err_StateNoNotValid",Grp_KxrModule[],,,11027,Grp_NOVLSTOP_LOG)
+    RETURN(FALSE)
+  ENDIF
+  
+  IF ((GRPg_Grp[iGrpNo].NumOut < 1) OR (GRPg_Grp[iGrpNo].NumOut > GRPg_MaxOut)) THEN
+    MsgNotify("Err_NumOutNotValid",Grp_KxrModule[],,,11028,Grp_NOVLSTOP_LOG)
+    RETURN(FALSE)
+  ENDIF
+  
+  IF ((GRPg_Grp[iGrpNo].NumIn < 1) OR (GRPg_Grp[iGrpNo].NumIn > GRPg_MaxIn)) THEN
+    MsgNotify("Err_NumInNotValid",Grp_KxrModule[],,,11029,Grp_NOVLSTOP_LOG)
+    RETURN(FALSE)
+  ENDIF
+  
+  IF (NOT GRPg_Grp[iGrpNo].Act) THEN
+    MsgNotify("Err_GrpNotActive",Grp_KxrModule[],,,11030,Grp_NOVLSTOP_LOG)
+    RETURN(FALSE)
+  ENDIF
+  
+  RETURN(TRUE)
+ENDFCT; (GRP_bCheckGrpLogic)
+
+;*********************************
+GLOBAL DEFFCT GRP_ErrStgConfig_T GRP_ShowDialogAfterError (CurrErrStg:IN)
+  ;checks in dependence of operation mode the error strategy
+  DECL GRP_ErrStgConfig_T ErrStgConfig
+  DECL GRP_ErrStrategy_T CurrErrStg
+  
+  ErrStgConfig=#ShowDialog; preset
+  SWITCH CurrErrStg
+    CASE #StopAtErr
+      ErrStgConfig=#StopMovement
+      MsgNotify("ErrStg_StopAtErr",Grp_KxrModule[],,,11012,Grp_NOVLSTOP_LOG)
+    CASE #DialAtT1T2
+      IF (($MODE_OP==#AUT)OR($MODE_OP==#EX)) THEN
+        ErrStgConfig=#StopMovement
+        MsgNotify("ErrStg_DialAtT1T2",Grp_KxrModule[],,,11013,Grp_NOVLSTOP_LOG)
+      ENDIF
+    CASE #DialAtT1T2Aut
+      IF ($MODE_OP==#EX) THEN
+        ErrStgConfig=#StopMovement
+        MsgNotify("ErrStg_DialAtT1T2Aut",Grp_KxrModule[],,,11014,Grp_NOVLSTOP_LOG)
+      ENDIF
+    CASE #DialAllMode
+      ErrStgConfig=#ShowDialog
+    CASE #UserErrStrategy
+      ErrStgConfig=#UserErrStrategy
+    CASE #NoConfig
+      ErrStgConfig=#StopMovement
+      MsgNotify("ErrStg_StopNoConfig",Grp_KxrModule[],,,11106,Grp_NOVLSTOP_LOG)
+    DEFAULT
+      ErrStgConfig=#StopMovement
+      MsgNotify("ErrStg_UnexpectedErr",Grp_KxrModule[],,,11015,Grp_NOVLSTOP_LOG)
+  ENDSWITCH
+  RETURN(ErrStgConfig) 
+ENDFCT ;(GRP_ShowDialogAfterError)
+
+;*********************************
+DEF Signal2PLC(bVal:IN,iOutput:IN)
+  ; set and reset Outputs
+  BOOL bVal
+  INT iOutput
+  IF ((iOutput>0 )AND (iOutput <= $NUM_OUT)) THEN
+    CONTINUE
+    $OUT[iOutput]=bVal
+  ENDIF
+END ;(Signal2PLC)
+
+;*******************************
+DEFFCT BOOL ErrorStrategy(iGrpNo:IN ,iStNo:IN,iErrStrategy:IN)
+  ;Validate ErrorStrategy
+  INT iGrpNo,iStNo,iErrStrategy, iDialogAnswer, Offset
+  DECL GRP_ErrStgConfig_T ErrStgConfig
+  BOOL bRepeat
+  CHAR StrIn[5], StrSigIn[5], StrActVal [10], StrDesVal [10]
+  
+  IF (ABS (iErrStrategy) < 1) OR (ABS (iErrStrategy) > 3) THEN
+    ;only 1, 2, 3 allowed
+    Signal2PLC(TRUE,GRPg_Err2PLC); Set PLC Errorflag
+    WHILE TRUE
+      MsgQuit("iErrStrategyNotDefined",Grp_KxrModule[],,,11016,Grp_VLSTOP_LOG)
+      Signal2PLC(FALSE,GRPg_Err2PLC); Reset PLC Errorflag
+    ENDWHILE
+  ENDIF
+  
+  GRPg_ProcessData.ActGrp = iGrpNo
+  Offset=Grp_IntToString(StrSigIn[],GRP_PreGrp[iGrpNo].iWrongSigIn)
+  Offset=Grp_IntToString(StrIn[],GRP_PreGrp[iGrpNo].iWrongIn)
+  Offset=Grp_IntToString(StrActVal[],GRP_PreGrp[iGrpNo].iActVal)
+  Offset=Grp_IntToString(StrDesVal[],GRP_PreGrp[iGrpNo].iDesVal)
+  
+  IF GRP_PreGrp[iGrpNo].iWrongSigIn == 0 THEN
+    MsgNotify("StartErrStrategy_CheckState",Grp_KxrModule[],GRP_PreGrp[iGrpNo].iWrongIn,,11008,Grp_NOVLSTOP_LOG)
+  ELSE
+    MsgNotify("StartErrStrategy_CheckStateSig",Grp_KxrModule[],GRP_PreGrp[iGrpNo].iWrongSigIn,,11103,Grp_NOVLSTOP_LOG)
+    MsgNotifyTextPar("StartErrStrategy_CheckStateSigVal",Grp_KxrModule[],0,StrDesVal[],StrActVal[],11104,Grp_NOVLSTOP_LOG)
+  ENDIF
+  
+  bRepeat=FALSE;   
+  ;TimeOut occured or State not succeed
+  iDialogAnswer=0
+  Signal2PLC(TRUE,GRPg_Err2PLC);Set ERROR Flag
+  ErrStgConfig=GRP_ShowDialogAfterError(GRPg_ErrStrategy[iErrStrategy]);#Stop,#ShowDialog
+  
+  IF(ErrStgConfig==#UserErrStrategy)THEN
+    ;handle the UserErrStrategy
+    MsgNotify("StartUserErrStrategy",Grp_KxrModule[],,,11017,Grp_NOVLSTOP_LOG)
+    bRepeat=GRPg_bUserErrStrategy(iGrpNo,iStNo)
+    IF bRepeat THEN
+      ;bRepeat == True: continue the process (5: #IgnoreError)
+      MsgNotify("ContinueAfterUserErrStrategy",Grp_KxrModule[],,,11018,Grp_NOVLSTOP_LOG)
+      iDialogAnswer=5
+    ELSE
+      ;bRepeat == FALSE: stop the process (7: #StopMovement )
+      MsgNotify("StopAfterUserErrStrategy",Grp_KxrModule[],,,11019,Grp_NOVLSTOP_LOG)
+      iDialogAnswer=7
+    ENDIF
+  ENDIF
+  
+  IF (ErrStgConfig==#ShowDialog) THEN  
+    ;Dialog is configured --> continue after Dialog
+    MsgNotify("StateErrContAfterDial",Grp_KxrModule[],,,11020,Grp_NOVLSTOP_LOG)
+    IF Grp_bDialWithIgnore THEN
+      ;Default with Ignore button
+      IF GRP_PreGrp[iGrpNo].iWrongSigIn == 0 THEN
+        MsgDialog(iDialogAnswer, "ErrStateDialog", Grp_KxrModule[],StrIn[], "StopBtn", "RepeatBtn", "IgnoreBtn") 
+        ;StopBtn 7, RepeatBtn 6, IgnoreBtn 5
+      ELSE
+        MsgDialog(iDialogAnswer, "ErrStateDialogSig", Grp_KxrModule[],StrSigIn[], "StopBtn", "RepeatBtn", "IgnoreBtn") 
+        ;StopBtn 7, RepeatBtn 6, IgnoreBtn 5
+      ENDIF 
+    ELSE
+      ; Don't show Ignore button
+      IF GRP_PreGrp[iGrpNo].iWrongSigIn == 0 THEN
+        MsgDialog(iDialogAnswer, "ErrStateDialog", Grp_KxrModule[],StrIn[], "StopBtn", "RepeatBtn") 
+        ;StopBtn 7, RepeatBtn 6
+      ELSE
+        MsgDialog(iDialogAnswer, "ErrStateDialogSig", Grp_KxrModule[],StrSigIn[], "StopBtn", "RepeatBtn") 
+        ;StopBtn 7, RepeatBtn 6
+      ENDIF
+    ENDIF
+    iDialogAnswer=iDialogAnswer
+    Signal2PLC(FALSE,GRPg_Err2PLC); Reset PLC Errorflag
+  ELSE
+    ;No dialog configured --> continue as configured
+    MsgNotify("StateErrContAsConf",Grp_KxrModule[],,,11021,Grp_NOVLSTOP_LOG)
+    SWITCH ErrStgConfig
+      CASE #IgnoreError ; Ignore error, same as Case 5
+        iDialogAnswer=5
+      CASE #StopMovement ; Stop Check, same as Case 7
+        iDialogAnswer=7
+      CASE #UserErrStrategy
+        ;iDialogAnswer already Set above
+      DEFAULT   ;only Stop is possible here --> stop
+        MsgNotify("UnknownCase_ErrorStrategy",Grp_kxrModule[])
+        iDialogAnswer=7
+    ENDSWITCH
+  ENDIF
+  
+  SWITCH iDialogAnswer
+    CASE 5;IgnoreBtn
+      MsgNotify("StateErrDialog_Ignore",Grp_KxrModule[],,,11023,Grp_NOVLSTOP_LOG)
+      bRepeat=FALSE
+    CASE 6;RepeatBtn
+      MsgNotify("StateErrDialog_Repeat",Grp_KxrModule[],,,11022,Grp_NOVLSTOP_LOG)
+      bRepeat=TRUE      
+    CASE 7; StopBtn or #StopMovement or #DEFAULT
+      WHILE TRUE
+        MsgQuit("StateErrDialog_Stop",Grp_KxrModule[],,,11024,Grp_VLSTOP_LOG)
+        Signal2PLC(FALSE,GRPg_Err2PLC); Reset PLC Errorflag
+      ENDWHILE
+    DEFAULT
+      WHILE TRUE
+        MsgQuit("UnexpectedError_Dialog",Grp_KxrModule[],,,11025,Grp_VLSTOP_LOG)
+        Signal2PLC(FALSE,GRPg_Err2PLC); Reset PLC Errorflag
+      ENDWHILE
+  ENDSWITCH 
+  Return(bRepeat)
+ENDFCT;ErrorStrategy()
+
+;*********************************
+GLOBAL DEFFCT INT Grp_IntToString(STRDEST[]:OUT,INT2TRANSFORM:IN)
+  DECL CHAR STRDEST[]
+  DECL INT INT2TRANSFORM
+  DECL STATE_T STATE
+  DECL INT Offset
+  Offset=0
+  IF STRCLEAR(STRDEST[])THEN
+    IF($ERR.Interpreter==#R_INT)THEN
+      CONTINUE
+      SWRITE(STRDEST[],STATE,Offset,"%d",INT2TRANSFORM)
+    ELSE
+      SWRITE(STRDEST[],STATE,Offset,"%d",INT2TRANSFORM)
+    ENDIF
+  ENDIF
+  RETURN(Offset)
+ENDFCT ;(Grp_IntToString)
+
+;***********************************
+DEF GRP_SetLoad(iGrpNo:IN, iStNo:IN, bSetWithDLoad:IN)
+  INT iGrpNo, iStNo,LoadNr,ToolNr
+  BOOL bSetWithDLoad
+  
+  ;Gripper loadvar not active
+  IF NOT GRPg_LoadPar[iGrpNo].Act THEN
+    RETURN 
+  ENDIF
+  
+  LoadNr= GRPg_LoadPar[iGrpNo].Ghost
+  ToolNr= GRPg_LoadPar[iGrpNo].ToolNr
+  
+  ;deactivation of Loadmanagement through flag in parameter page
+  IF (GRPg_InactLoadMan <>0)THEN
+    IF($IN[GRPg_InactLoadMan]) THEN
+      IF (($MODE_OP==#AUT)OR($MODE_OP==#EX)) THEN
+        MsgNotify("LoadManInaktiv",Grp_KxrModule[],,,11031,Grp_NOVLSTOP_LOG)
+      ENDIF
+      RETURN 
+    ENDIF
+  ENDIF 
+  
+  ;Ghost on
+  IF GRP_bGhostIsOn THEN
+    IF (ToolNr<>0) THEN
+      IF (LoadNr>0)THEN
+        LOAD_DATA[ToolNr]= GRPg_LoadData[iGrpNo,LoadNr].LoadVar
+        IF bSetWithDLoad THEN
+          $Load= SLOAD (ToolNr); ILF Gripper Set Cont and SynSet, do not set the $load
+        ENDIF
+      ELSE
+        LOAD_DATA[ToolNr]= GRPg_LoadData[iGrpNo,iStNo].LoadVar
+        IF bSetWithDLoad THEN
+          $Load= SLOAD (ToolNr)
+        ENDIF
+      ENDIF 
+    ELSE
+      MsgNotify("NoTool",Grp_KxrModule[],iGrpNo,,11032,Grp_NOVLSTOP_LOG)
+    ENDIF
+    RETURN
+  ENDIF
+  
+  IF ToolNr<>0 THEN
+    LOAD_DATA[ToolNr]= GRPg_LoadData[iGrpNo,iStNo].LoadVar
+    IF bSetWithDLoad THEN
+      $Load= SLOAD (ToolNr); ILF Gripper Set Cont and SynSet, do not set the $load
+    ENDIF
+  ELSE
+    MsgNotify("NoTool",Grp_KxrModule[],iGrpNo,,11032,Grp_NOVLSTOP_LOG)
+  ENDIF
+  
+END;(GRP_SetLoad)
+
+;*********************************
+DEF Grp_SetSignal(iGrpSigNo:IN, iSigVal:IN)
+  ; set Signal
+  INT iGrpSigNo, iSigVal, iGrpSigVal
+  
+  IF ((iGrpSigNo < 1 )OR (iGrpSigNo >32)) THEN
+    MsgNotify("SignalToSetIsNotValid",Grp_KxrModule[],iGrpSigNo,,11100,Grp_NOVLSTOP_LOG)
+    RETURN
+  ENDIF
+  IF iSigVal <=99 THEN
+    RETURN ;99: Ignore
+  ENDIF
+  
+  iGrpSigVal=iSigVal-100;
+  SWITCH  iGrpSigNo
+    CASE 1
+      GRP_SigOut_1 = iGrpSigVal
+    CASE 2
+      GRP_SigOut_2 = iGrpSigVal
+    CASE 3
+      GRP_SigOut_3 = iGrpSigVal
+    CASE 4
+      GRP_SigOut_4 = iGrpSigVal
+    CASE 5
+      GRP_SigOut_5 = iGrpSigVal
+    CASE 6
+      GRP_SigOut_6 = iGrpSigVal
+    CASE 7
+      GRP_SigOut_7 = iGrpSigVal
+    CASE 8
+      GRP_SigOut_8 = iGrpSigVal
+    CASE 9
+      GRP_SigOut_9 = iGrpSigVal
+    CASE 10
+      GRP_SigOut_10 = iGrpSigVal
+    CASE 11
+      GRP_SigOut_11 = iGrpSigVal
+    CASE 12
+      GRP_SigOut_12 = iGrpSigVal
+    CASE 13
+      GRP_SigOut_13 = iGrpSigVal
+    CASE 14
+      GRP_SigOut_14 = iGrpSigVal
+    CASE 15
+      GRP_SigOut_15 = iGrpSigVal
+    CASE 16
+      GRP_SigOut_16 = iGrpSigVal
+    CASE 17
+      GRP_SigOut_17 = iGrpSigVal
+    CASE 18
+      GRP_SigOut_18 = iGrpSigVal
+    CASE 19
+      GRP_SigOut_19 = iGrpSigVal
+    CASE 20
+      GRP_SigOut_20 = iGrpSigVal
+    CASE 21
+      GRP_SigOut_21 = iGrpSigVal
+    CASE 22
+      GRP_SigOut_22 = iGrpSigVal
+    CASE 23
+      GRP_SigOut_23 = iGrpSigVal
+    CASE 24
+      GRP_SigOut_24 = iGrpSigVal
+    CASE 25
+      GRP_SigOut_25 = iGrpSigVal
+    CASE 26
+      GRP_SigOut_26 = iGrpSigVal
+    CASE 27
+      GRP_SigOut_27 = iGrpSigVal
+    CASE 28
+      GRP_SigOut_28 = iGrpSigVal
+    CASE 29
+      GRP_SigOut_29 = iGrpSigVal
+    CASE 30
+      GRP_SigOut_30 = iGrpSigVal
+    CASE 31
+      GRP_SigOut_31 = iGrpSigVal
+    CASE 32
+      GRP_SigOut_32 = iGrpSigVal
+    DEFAULT
+      ;see obove
+  ENDSWITCH 
+END ;(Grp_SetSignal)
+
+;*********************************
+DEFFCT INT Grp_iReadSigVal(iGrpSigNo:IN)
+  ;Check gripper logically
+  INT iGrpSigNo
+  
+  IF ((iGrpSigNo < 1 )OR (iGrpSigNo >32)) THEN
+    MsgNotify("SignalToReadIsNotValid",Grp_KxrModule[],iGrpSigNo,,11107,Grp_NOVLSTOP_LOG)
+    RETURN 0
+  ENDIF
+  
+  SWITCH  iGrpSigNo
+    CASE 1
+      RETURN (GRP_SigIn_1)
+    CASE 2
+      RETURN (GRP_SigIn_2)
+    CASE 3
+      RETURN (GRP_SigIn_3)
+    CASE 4
+      RETURN (GRP_SigIn_4)
+    CASE 5
+      RETURN (GRP_SigIn_5)
+    CASE 6
+      RETURN (GRP_SigIn_6)
+    CASE 7
+      RETURN (GRP_SigIn_7)
+    CASE 8
+      RETURN (GRP_SigIn_8)
+    CASE 9
+      RETURN (GRP_SigIn_9)
+    CASE 10
+      RETURN (GRP_SigIn_10)
+    CASE 11
+      RETURN (GRP_SigIn_11)
+    CASE 12
+      RETURN (GRP_SigIn_12)
+    CASE 13
+      RETURN (GRP_SigIn_13)
+    CASE 14
+      RETURN (GRP_SigIn_14)
+    CASE 15
+      RETURN (GRP_SigIn_15)
+    CASE 16
+      RETURN (GRP_SigIn_16)
+    CASE 17
+      RETURN (GRP_SigIn_17)
+    CASE 18
+      RETURN (GRP_SigIn_18)
+    CASE 19
+      RETURN (GRP_SigIn_19)
+    CASE 20
+      RETURN (GRP_SigIn_20)
+    CASE 21
+      RETURN (GRP_SigIn_21)
+    CASE 22
+      RETURN (GRP_SigIn_22)
+    CASE 23
+      RETURN (GRP_SigIn_23)
+    CASE 24
+      RETURN (GRP_SigIn_24)
+    CASE 25
+      RETURN (GRP_SigIn_25)
+    CASE 26
+      RETURN (GRP_SigIn_26)
+    CASE 27
+      RETURN (GRP_SigIn_27)
+    CASE 28
+      RETURN (GRP_SigIn_28)
+    CASE 29
+      RETURN (GRP_SigIn_29)
+    CASE 30
+      RETURN (GRP_SigIn_30)
+    CASE 31
+      RETURN (GRP_SigIn_31)
+    CASE 32
+      RETURN (GRP_SigIn_32)
+  ENDSWITCH 
+ENDFCT;(Grp_iReadSigval)
+
+;*********************************
+GLOBAL DEF Grp_MonPLC()
+  INT iGrp, iIn, iDesVal, iActVal, iInput, iInSig
+  BOOL bSuccess
+  
+  IF ((($PRO_STATE1==#P_FREE) OR ($PRO_STATE1==#P_RESET) OR ($PRO_STATE1==#P_END)) AND (GRPg_bMonIsAct)) THEN
+    ;Monitoring Off for all Grippers
+    MsgNotify("MonOffAllProState",Grp_KxrModule[],,,11108,Grp_NOVLSTOP_LOG)
+    GRPg_bMonIsAct=FALSE
+    FOR iGrp=1 TO GRPg_MaxGrp
+      GRP_PreGrp[iGrp]=GRP_PreGrpDef
+    ENDFOR
+    RETURN
+  ENDIF
+  
+  bSuccess=TRUE
+  Grp_iSTimer=$ROB_TIMER
+  IF (NOT GRPg_bMonIsAct) OR (NOT GRP_bIntIsOn) OR GRP_bMonErr THEN
+    RETURN
+  ENDIF
+  FOR iGrp=1 TO GRPg_MaxGrp
+    IF (GRP_PreGrp[iGrp].bMonIsAct AND (NOT GRP_PreGrp[iGrp].bMonIsTempOff) AND (GRP_PreGrp[iGrp].iPreStNo > 0)) THEN
+      FOR iIn=1 TO GRPg_Grp[iGrp].NumIn
+        ;count configured INs
+        iDesVal=ABS(GRP_PreState[iGrp,iIn].iStInVal)
+        iInput=GRP_PreState [iGrp,iIn].iGrpIn
+        IF iDesVal >= 100 THEN
+          ;It's a Signal
+          iDesVal=iDesVal-100
+          iActVal=Grp_iReadSigVal(iInput)
+          IF iDesVal <> iActVal THEN
+            iInSig=iInput
+            iInput=0
+            bSuccess=FALSE
+          ENDIF
+        ELSE
+          ;It's a Standard: 
+          IF ($IN[GRP_PreState[iGrp,iIn].iGrpIn] <> GRP_PreState[iGrp,iIn].bStInVal) THEN
+            IF GRP_PreState[iGrp,iIn].bStInVal THEN
+              iActVal=-1
+              iDesVal=1
+            ELSE
+              iActVal=1
+              iDesVal=-1
+            ENDIF
+            iInSig=0
+            bSuccess=FALSE
+          ENDIF
+        ENDIF        
+        
+        IF bSuccess==FALSE THEN    
+          IF GRP_PreGrp[iGrp].bMonIsTempOff THEN
+            RETURN
+          ENDIF
+          MsgNotify("GrpMonErrorDetectedGrp",Grp_KxrModule[],iGrp,,11101,Grp_NOVLSTOP_LOG)
+          MsgNotify("GrpMonErrorDetectedState",Grp_KxrModule[],GRP_PreGrp[iGrp].iPreStNo,,11102,Grp_NOVLSTOP_LOG)
+          GRP_PreGrp[iGrp].iWrongIn=iInput
+          GRP_PreGrp[iGrp].iWrongSigIn=iInSig
+          GRP_PreGrp[iGrp].iActVal=iActVal
+          GRP_PreGrp[iGrp].iDesVal=iDesVal
+          GRP_PreGrp[iGrp].bMonIsTempOff=TRUE
+          GRP_iMonErrGrpNo=iGrp
+          GRP_bMonErr=True
+          RETURN
+        ENDIF 
+      ENDFOR
+    ENDIF
+  ENDFOR
+END; (Grp_MonPLC)
+
+;*********************************
+GLOBAL DEF GRPg_MonIntOcc()
+  INT iGrpNo
+  
+  iGrpNo= GRP_iMonErrGrpNo
+  BRAKE
+  GRPg_Check (iGrpNo,GRP_PreGrp[iGrpNo].iPreStNo,FALSE,GRP_PreGrp[iGrpNo].iMonErrStrategy)
+  GRP_bMonErr=FALSE
+END;(GRPg_MonIntOcc)
+
+;*********************************
+GLOBAL DEF GRPg_SetMon (tMonOnOff:IN,iGrpNo:IN, iMonErrStrategy:IN)
+  INT iGrpNo, i,iMonErrStrategy
+  BOOL bMonIsON
+  DECL GRP_Mon_T tMonOnOff
+  
+  ON_ERROR_PROCEED
+  i=iMonErrStrategy
+  IF $ERR.NUMBER<>0 THEN
+    ERR_CLEAR($ERR)
+    iMonErrStrategy=0
+  ENDIF 
+  
+  Grp_iRTimer=Grp_iSTimer
+  
+  SWITCH tMonOnOff
+    CASE #ON
+      WAIT SEC 0.12
+      WHILE (Grp_iRTimer == Grp_iSTimer)
+        Signal2PLC(TRUE,GRPg_Err2PLC); Reset PLC Errorflag
+        MsgQuit("GrpPLCNotRunning",Grp_KxrModule[],,,11105,Grp_VLSTOP_LOG)
+        Signal2PLC(FALSE,GRPg_Err2PLC); Reset PLC Errorflag
+      ENDWHILE
+      
+      GRP_PreGrp[iGrpNo].bMonIsAct=TRUE
+      GRP_PreGrp[iGrpNo].iMonErrStrategy=iMonErrStrategy
+      GRP_PreGrp[iGrpNo].bMonIsTempOff=FALSE
+      GRP_PreGrp[iGrpNo].iWrongIn=0
+      GRPg_bMonIsAct=TRUE
+      
+    CASE #OFF
+      WAIT SEC 0.12
+      WHILE (Grp_iRTimer == Grp_iSTimer)
+        Signal2PLC(TRUE,GRPg_Err2PLC); Reset PLC Errorflag
+        MsgQuit("GrpPLCNotRunning",Grp_KxrModule[],,,11105,Grp_VLSTOP_LOG)
+        Signal2PLC(FALSE,GRPg_Err2PLC); Reset PLC Errorflag
+      ENDWHILE
+      
+      GRP_PreGrp[iGrpNo]=GRP_PreGrpDef
+      bMonIsON=FALSE
+      ;is another grippermon on
+      FOR i=1 TO GRPg_MaxGrp
+        IF GRP_PreGrp[i].bMonIsAct THEN
+          bMonIsON=TRUE
+          EXIT
+        ENDIF
+      ENDFOR
+      GRPg_bMonIsAct=bMonIsON
+      
+    CASE #OFFALL
+      WAIT SEC 0.12
+      WHILE (Grp_iRTimer == Grp_iSTimer)
+        Signal2PLC(TRUE,GRPg_Err2PLC); Reset PLC Errorflag
+        MsgQuit("GrpPLCNotRunning",Grp_KxrModule[],,,11105,Grp_VLSTOP_LOG)
+        Signal2PLC(FALSE,GRPg_Err2PLC); Reset PLC Errorflag
+      ENDWHILE
+      GRPg_bMonIsAct=FALSE
+      FOR i=1 TO GRPg_MaxGrp
+        GRP_PreGrp[i]=GRP_PreGrpDef
+      ENDFOR
+      
+    CASE #OFFNextAct
+      GRP_PreGrp[iGrpNo].bMonOffNextState=TRUE
+  ENDSWITCH
+  GRP_bMonErr=FALSE
+  GRPg_MonIntOnOff(GRPg_bMonIsAct)
+END;(GRPg_SetMon)
+
+;*********************************
+GLOBAL DEF GRPg_MonIntOnOff(bOn:IN)
+  BOOL bOn
+  IF bOn AND (NOT GRP_bMonErr)THEN
+    GLOBAL INTERRUPT DECL GRPg_Interrupt WHEN GRP_bMonErr DO GRPg_MonIntOcc()
+    INTERRUPT ON GRPg_Interrupt
+    GRP_bIntIsOn=TRUE
+  ELSE
+    INTERRUPT OFF GRPg_Interrupt
+    GRP_bIntIsOn=FALSE
+  ENDIF 
+END;(GRPg_MonIntOnOff)

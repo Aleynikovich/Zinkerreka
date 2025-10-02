@@ -1,0 +1,171 @@
+&ACCESS R2
+&REL 1
+&COMMENT GripperSpotTech package
+&PARAM KUKATPGRP_VERSION = 5.0
+&PARAM DISKPATH = KRC:\R1\TP\GripperSpotTech
+DEFDAT  GRP_FUNC PUBLIC
+;#############################################
+;# File-Version: 1.1                         #
+;# Copyright (c) KUKA Deutschland GmbH 2020  #
+;#############################################
+GLOBAL CONST CHAR GRP_KxrModule[14]
+GRP_KxrModule[]="GripperTechKrl"
+
+;## Configuration ##
+BOOL GRP_bDialWithIgnore=TRUE ; Default: TRUE
+
+;## Runtime
+GLOBAL STRUC GRPg_ProcessData_T INT ActGrp,ReqState,LastGrpNo,LastStNo
+DECL GLOBAL GRPg_ProcessData_T GRPg_ProcessData={ActGrp 1,ReqState 0,LastGrpNo 1,LastStNo 2}
+
+;DECL CONST GLOBAL KRLMSGOPT_T GRP_NOVLSTOP_NOLOG={VL_STOP FALSE,CLEAR_P_RESET TRUE,LOG_TO_DB FALSE}
+;DECL CONST GLOBAL KRLMSGOPT_T GRP_VLSTOP_NOLOG={VL_STOP TRUE,CLEAR_P_RESET TRUE,LOG_TO_DB FALSE}
+DECL GLOBAL CONST KRLMSGOPT_T GRP_NOVLSTOP_LOG={VL_STOP FALSE,CLEAR_P_RESET TRUE,LOG_TO_DB TRUE}
+DECL GLOBAL CONST KRLMSGOPT_T GRP_VLSTOP_LOG={VL_STOP TRUE,CLEAR_P_RESET TRUE,LOG_TO_DB TRUE}
+
+GLOBAL BOOL GRPg_bMonIsAct=TRUE
+BOOL GRP_bMonErr=FALSE
+BOOL GRP_bIntIsOn=TRUE
+BOOL GRP_bGhostIsOn=FALSE
+BOOL Grp_bSetWithCheck=FALSE
+INT GRP_iPreGrpNo=1
+INT GRP_iMonErrGrpNo=1
+INT Grp_iSTimer=1
+INT Grp_iRTimer=1
+
+STRUC GRP_PreGrp_T INT iPreStNo,iErrStrategy,iMonErrStrategy,iWrongIn,iWrongSigIn,iDesVal,iActVal,BOOL bMonIsAct,bMonIsTempOff,bMonOffNextState
+DECL GRP_PreGrp_T GRP_PreGrpDef={iPreStNo 0,iErrStrategy 0,iMonErrStrategy 0,iWrongIn 0,iWrongSigIn 0,iDesVal 0,iActVal 0,bMonIsAct FALSE,bMonIsTempOff FALSE,bMonOffNextState FALSE}
+DECL GRP_PreGrp_T GRP_PreGrp[32]
+GRP_PreGrp[1]={iPreStNo 2,iErrStrategy 0,iMonErrStrategy 0,iWrongIn 0,iWrongSigIn 0,iDesVal 0,iActVal 0,bMonIsAct FALSE,bMonIsTempOff FALSE,bMonOffNextState FALSE}
+GRP_PreGrp[2]={iPreStNo 2,iErrStrategy 0,iMonErrStrategy 0,iWrongIn 0,iWrongSigIn 0,iDesVal 0,iActVal 0,bMonIsAct FALSE,bMonIsTempOff FALSE,bMonOffNextState FALSE}
+GRP_PreGrp[3]={iPreStNo 0,iErrStrategy 0,iMonErrStrategy 0,iWrongIn 0,iWrongSigIn 0,iDesVal 0,iActVal 0,bMonIsAct FALSE,bMonIsTempOff FALSE,bMonOffNextState FALSE}
+GRP_PreGrp[4]={iPreStNo 0,iErrStrategy 0,iMonErrStrategy 0,iWrongIn 0,iWrongSigIn 0,iDesVal 0,iActVal 0,bMonIsAct FALSE,bMonIsTempOff FALSE,bMonOffNextState FALSE}
+GRP_PreGrp[5]={iPreStNo 0,iErrStrategy 0,iMonErrStrategy 0,iWrongIn 0,iWrongSigIn 0,iDesVal 0,iActVal 0,bMonIsAct FALSE,bMonIsTempOff FALSE,bMonOffNextState FALSE}
+GRP_PreGrp[6]={iPreStNo 0,iErrStrategy 0,iMonErrStrategy 0,iWrongIn 0,iWrongSigIn 0,iDesVal 0,iActVal 0,bMonIsAct FALSE,bMonIsTempOff FALSE,bMonOffNextState FALSE}
+GRP_PreGrp[7]={iPreStNo 0,iErrStrategy 0,iMonErrStrategy 0,iWrongIn 0,iWrongSigIn 0,iDesVal 0,iActVal 0,bMonIsAct FALSE,bMonIsTempOff FALSE,bMonOffNextState FALSE}
+GRP_PreGrp[8]={iPreStNo 0,iErrStrategy 0,iMonErrStrategy 0,iWrongIn 0,iWrongSigIn 0,iDesVal 0,iActVal 0,bMonIsAct FALSE,bMonIsTempOff FALSE,bMonOffNextState FALSE}
+GRP_PreGrp[9]={iPreStNo 0,iErrStrategy 0,iMonErrStrategy 0,iWrongIn 0,iWrongSigIn 0,iDesVal 0,iActVal 0,bMonIsAct FALSE,bMonIsTempOff FALSE,bMonOffNextState FALSE}
+GRP_PreGrp[10]={iPreStNo 0,iErrStrategy 0,iMonErrStrategy 0,iWrongIn 0,iWrongSigIn 0,iDesVal 0,iActVal 0,bMonIsAct FALSE,bMonIsTempOff FALSE,bMonOffNextState FALSE}
+GRP_PreGrp[11]={iPreStNo 0,iErrStrategy 0,iMonErrStrategy 0,iWrongIn 0,iWrongSigIn 0,iDesVal 0,iActVal 0,bMonIsAct FALSE,bMonIsTempOff FALSE,bMonOffNextState FALSE}
+GRP_PreGrp[12]={iPreStNo 0,iErrStrategy 0,iMonErrStrategy 0,iWrongIn 0,iWrongSigIn 0,iDesVal 0,iActVal 0,bMonIsAct FALSE,bMonIsTempOff FALSE,bMonOffNextState FALSE}
+GRP_PreGrp[13]={iPreStNo 0,iErrStrategy 0,iMonErrStrategy 0,iWrongIn 0,iWrongSigIn 0,iDesVal 0,iActVal 0,bMonIsAct FALSE,bMonIsTempOff FALSE,bMonOffNextState FALSE}
+GRP_PreGrp[14]={iPreStNo 0,iErrStrategy 0,iMonErrStrategy 0,iWrongIn 0,iWrongSigIn 0,iDesVal 0,iActVal 0,bMonIsAct FALSE,bMonIsTempOff FALSE,bMonOffNextState FALSE}
+GRP_PreGrp[15]={iPreStNo 0,iErrStrategy 0,iMonErrStrategy 0,iWrongIn 0,iWrongSigIn 0,iDesVal 0,iActVal 0,bMonIsAct FALSE,bMonIsTempOff FALSE,bMonOffNextState FALSE}
+GRP_PreGrp[16]={iPreStNo 0,iErrStrategy 0,iMonErrStrategy 0,iWrongIn 0,iWrongSigIn 0,iDesVal 0,iActVal 0,bMonIsAct FALSE,bMonIsTempOff FALSE,bMonOffNextState FALSE}
+GRP_PreGrp[17]={iPreStNo 0,iErrStrategy 0,iMonErrStrategy 0,iWrongIn 0,iWrongSigIn 0,iDesVal 0,iActVal 0,bMonIsAct FALSE,bMonIsTempOff FALSE,bMonOffNextState FALSE}
+GRP_PreGrp[18]={iPreStNo 0,iErrStrategy 0,iMonErrStrategy 0,iWrongIn 0,iWrongSigIn 0,iDesVal 0,iActVal 0,bMonIsAct FALSE,bMonIsTempOff FALSE,bMonOffNextState FALSE}
+GRP_PreGrp[19]={iPreStNo 0,iErrStrategy 0,iMonErrStrategy 0,iWrongIn 0,iWrongSigIn 0,iDesVal 0,iActVal 0,bMonIsAct FALSE,bMonIsTempOff FALSE,bMonOffNextState FALSE}
+GRP_PreGrp[20]={iPreStNo 0,iErrStrategy 0,iMonErrStrategy 0,iWrongIn 0,iWrongSigIn 0,iDesVal 0,iActVal 0,bMonIsAct FALSE,bMonIsTempOff FALSE,bMonOffNextState FALSE}
+GRP_PreGrp[21]={iPreStNo 0,iErrStrategy 0,iMonErrStrategy 0,iWrongIn 0,iWrongSigIn 0,iDesVal 0,iActVal 0,bMonIsAct FALSE,bMonIsTempOff FALSE,bMonOffNextState FALSE}
+GRP_PreGrp[22]={iPreStNo 0,iErrStrategy 0,iMonErrStrategy 0,iWrongIn 0,iWrongSigIn 0,iDesVal 0,iActVal 0,bMonIsAct FALSE,bMonIsTempOff FALSE,bMonOffNextState FALSE}
+GRP_PreGrp[23]={iPreStNo 0,iErrStrategy 0,iMonErrStrategy 0,iWrongIn 0,iWrongSigIn 0,iDesVal 0,iActVal 0,bMonIsAct FALSE,bMonIsTempOff FALSE,bMonOffNextState FALSE}
+GRP_PreGrp[24]={iPreStNo 0,iErrStrategy 0,iMonErrStrategy 0,iWrongIn 0,iWrongSigIn 0,iDesVal 0,iActVal 0,bMonIsAct FALSE,bMonIsTempOff FALSE,bMonOffNextState FALSE}
+GRP_PreGrp[25]={iPreStNo 0,iErrStrategy 0,iMonErrStrategy 0,iWrongIn 0,iWrongSigIn 0,iDesVal 0,iActVal 0,bMonIsAct FALSE,bMonIsTempOff FALSE,bMonOffNextState FALSE}
+GRP_PreGrp[26]={iPreStNo 0,iErrStrategy 0,iMonErrStrategy 0,iWrongIn 0,iWrongSigIn 0,iDesVal 0,iActVal 0,bMonIsAct FALSE,bMonIsTempOff FALSE,bMonOffNextState FALSE}
+GRP_PreGrp[27]={iPreStNo 0,iErrStrategy 0,iMonErrStrategy 0,iWrongIn 0,iWrongSigIn 0,iDesVal 0,iActVal 0,bMonIsAct FALSE,bMonIsTempOff FALSE,bMonOffNextState FALSE}
+GRP_PreGrp[28]={iPreStNo 0,iErrStrategy 0,iMonErrStrategy 0,iWrongIn 0,iWrongSigIn 0,iDesVal 0,iActVal 0,bMonIsAct FALSE,bMonIsTempOff FALSE,bMonOffNextState FALSE}
+GRP_PreGrp[29]={iPreStNo 0,iErrStrategy 0,iMonErrStrategy 0,iWrongIn 0,iWrongSigIn 0,iDesVal 0,iActVal 0,bMonIsAct FALSE,bMonIsTempOff FALSE,bMonOffNextState FALSE}
+GRP_PreGrp[30]={iPreStNo 0,iErrStrategy 0,iMonErrStrategy 0,iWrongIn 0,iWrongSigIn 0,iDesVal 0,iActVal 0,bMonIsAct FALSE,bMonIsTempOff FALSE,bMonOffNextState FALSE}
+GRP_PreGrp[31]={iPreStNo 0,iErrStrategy 0,iMonErrStrategy 0,iWrongIn 0,iWrongSigIn 0,iDesVal 0,iActVal 0,bMonIsAct FALSE,bMonIsTempOff FALSE,bMonOffNextState FALSE}
+GRP_PreGrp[32]={iPreStNo 0,iErrStrategy 0,iMonErrStrategy 0,iWrongIn 0,iWrongSigIn 0,iDesVal 0,iActVal 0,bMonIsAct FALSE,bMonIsTempOff FALSE,bMonOffNextState FALSE}
+
+STRUC GRP_PreState_T INT iGrpIn,iStInVal,BOOL bStInVal,BOOL bGhost
+DECL GRP_PreState_T GRP_PreState[32,16]
+GRP_PreState[1,1]={iGrpIn 127,iStInVal -1,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[1,2]={iGrpIn 126,iStInVal 1,bStInVal TRUE,bGhost FALSE}
+GRP_PreState[1,3]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[1,4]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[1,5]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[1,6]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[1,7]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[1,8]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[1,9]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[1,10]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[1,11]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[1,12]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[1,13]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[1,14]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[1,15]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[1,16]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[2,1]={iGrpIn 128,iStInVal -1,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[2,2]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[2,3]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[2,4]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[2,5]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[2,6]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[2,7]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[2,8]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[2,9]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[2,10]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[2,11]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[2,12]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[2,13]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[2,14]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[2,15]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[2,16]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[3,1]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[3,2]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[3,3]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[3,4]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[3,5]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[3,6]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[3,7]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[3,8]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[3,9]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[3,10]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[3,11]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[3,12]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[3,13]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[3,14]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[3,15]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[3,16]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[4,1]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[4,2]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[4,3]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[4,4]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[4,5]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[4,6]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[4,7]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[4,8]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[4,9]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[4,10]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[4,11]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[4,12]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[4,13]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[4,14]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[4,15]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[4,16]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[5,1]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[5,2]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[5,3]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[5,4]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[5,5]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[5,6]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[5,7]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[5,8]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[5,9]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[5,10]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[5,11]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[5,12]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[5,13]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[5,14]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[5,15]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[5,16]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[6,1]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[6,2]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[6,3]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[6,4]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[6,5]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[6,6]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[6,7]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[6,8]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[6,9]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[6,10]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[6,11]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[6,12]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[6,13]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[6,14]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[6,15]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+GRP_PreState[6,16]={iGrpIn 1026,iStInVal 0,bStInVal FALSE,bGhost FALSE}
+
+ENDDAT

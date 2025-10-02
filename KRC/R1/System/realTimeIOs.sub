@@ -1,0 +1,24 @@
+&ACCESS RVP
+&REL 1
+&COMMENT USER specified PLC program
+DEF  realTimeIOs ( )
+   LOOP
+      
+      $RECIPE.diametroHexagono = ByDiametroHexagono
+      $RECIPE.diametroRosca = ByDiametroRosca
+      $RECIPE.lHexagono = ByLongitudHexagono
+      $RECIPE.lTotal = wLongitudTotal
+      $RECIPE.lOffsetCBP = wLongitudOffsetCintaBP
+      $RECIPE.lOffsetCIND = wLongitudOffsetIND
+      $RECIPE.recipeNum = ByNumeroReceta
+      
+      $RECIPE.PiO.X = ByPickOffsetX
+      $RECIPE.PiO.Y = ByPickOffsetY
+      $RECIPE.PiO.Z = ByPickOffsetZ
+      
+      $RECIPE.PlO.X = ByPlaceOffsetX
+      $RECIPE.PlO.Y = ByPlaceOffsetY
+      $RECIPE.PlO.Z = ByPlaceOffsetZ
+      
+   ENDLOOP
+END

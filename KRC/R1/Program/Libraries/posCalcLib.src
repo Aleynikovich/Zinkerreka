@@ -1,0 +1,223 @@
+&ACCESS RVO1
+&REL 26
+DEF posCalcLib ( )
+   ;FOLD PROGRAM INFO --------------------------------------------------------
+   ; Program: posCalcLib
+   ; Description: Library containing FRAME calc methods used to
+   ;              parametrize trajectories and keypoints
+   ; Creation Date: 16/04/2024
+   ; Last Modification Date: 18/04/2024
+   ; Author:   
+   ;           Alexander Kalis
+   ;           Tekniker, C. I?aki Goenaga, 5, 20600, Gipuzkoa
+   ;           +34 674 05 15 10
+   ;           alexander.kalis@tekniker.es
+   ; Last modification Author: 
+   ;           Alexander Kalis
+   ; Customer: Erreka S. COOP
+   ;ENDFOLD --------------------------------------------------------
+END
+
+GLOBAL DEFFCT POS posCalcPickBP(recetaPieza:IN, configCelda:IN)
+   DECL  LAYOUT_CONFIG  configCelda 
+   DECL  RECIPE_TYPE    recetaPieza
+   DECL  POS returnFrame
+   ;------INIT-----------------------------------------
+   returnFrame    =  $NULLFRAME
+   returnFrame.Y  =  -recetaPieza.lTotal - 5 
+   returnFrame.Z  =  recetaPieza.diametroRosca/2 * (2 - cos($LAYOUT.alphaVBP/2))
+   
+   RETURN returnFrame
+   
+ENDFCT
+
+GLOBAL DEFFCT laserSweepFrames posCalcLaserSweep(recetaPieza:IN, configCelda:IN)
+   DECL RECIPE_TYPE recetaPieza
+   DECL LAYOUT_CONFIG configCelda
+   
+   ;-----VAR  DECL---------------------
+   DECL laserSweepFrames outputFrames
+   ;Init
+   outputFrames.screwBottom      =  $NULLFRAME
+   outputFrames.screwProfileA    =  $NULLFRAME
+   outputFrames.screwProfileB    =  $NULLFRAME
+   outputFrames.screwInnerHead   =  $NULLFRAME
+   outputFrames.screwHex         =  $NULLFRAME
+   outputFrames.screwOuterHead   =  $NULLFRAME
+
+   ;1-Screw bottom Pose
+   outputFrames.screwBottom.X    =  -((recetaPieza.diametroRosca / 2) - (recetaPieza.diametroRosca / 2 * cos(configCelda.workAngle)))
+   outputFrames.screwBottom.Y    =  0
+   outputFrames.screwBottom.A    =  configCelda.workAngle 
+   ;2-Screw profileA Pose
+   outputFrames.screwProfileA.X  =  -recetaPieza.diametroRosca / 2
+   outputFrames.screwProfileA.Y  =  0
+   outputFrames.screwProfileA.Z  =  recetaPieza.diametroRosca / 2 * laserParameter[$RECIPE.recipeNum].incrementoZ / 100
+   outputFrames.screwProfileA.A  =  0
+   ;3-Screw profileB Pose
+   outputFrames.screwProfileB.X  =  -recetaPieza.diametroRosca / 2
+   outputFrames.screwProfileB.Y  =  recetaPieza.lTotal - recetaPieza.lHexagono
+   outputFrames.screwProfileB.Z  =  recetaPieza.diametroRosca / 2 * laserParameter[$RECIPE.recipeNum].incrementoZ / 100
+   outputFrames.screwProfileB.A  =  0
+   ;4-Screw inner Head Pose 
+   outputFrames.screwInnerHead.X =  -((recetaPieza.diametroRosca / 2) + (recetaPieza.diametroRosca / 2) * cos(configCelda.workAngle))
+   outputFrames.screwInnerHead.Y =  recetaPieza.lTotal - recetaPieza.lHexagono - recetaPieza.lHexagono * sin(configCelda.workAngle)
+   outputFrames.screwInnerHead.A =  configCelda.workAngle
+   ;5-Hex Profile Pose
+   outputFrames.screwHex.X       =  -recetaPieza.diametroHexagono / 2
+   outputFrames.screwHex.Y       =  recetaPieza.lTotal - (recetaPieza.lHexagono / 2)
+   outputFrames.screwHex.A       =  0
+   ;6-Screw Outer HeadPose
+   outputFrames.screwOuterHead.X =  -((recetaPieza.diametroHexagono / 2) - (recetaPieza.diametroHexagono / 2) * cos(configCelda.workAngle))
+   outputFrames.screwOuterHead.Y =  recetaPieza.lTotal 
+   outputFrames.screwOuterHead.A =  -configCelda.workAngle
+   
+   
+   RETURN outputFrames
+ENDFCT
+
+GLOBAL DEFFCT laserSweepFrames posCalcLaserSweepAngledP(recetaPieza:IN, configCelda:IN, angle:IN)
+   DECL RECIPE_TYPE recetaPieza
+   DECL LAYOUT_CONFIG configCelda
+   DECL REAL angle
+   
+   ;-----VAR  DECL---------------------
+   DECL laserSweepFrames outputFrames
+      ;Init
+   outputFrames.screwBottom      =  $NULLFRAME
+   outputFrames.screwProfileA    =  $NULLFRAME
+   outputFrames.screwProfileB    =  $NULLFRAME
+   outputFrames.screwInnerHead   =  $NULLFRAME
+   outputFrames.screwHex         =  $NULLFRAME
+   outputFrames.screwOuterHead   =  $NULLFRAME
+
+   ;1-Screw bottom Pose
+   outputFrames.screwBottom.X    =  -((recetaPieza.diametroRosca / 2) - (recetaPieza.diametroRosca / 2 * cos(configCelda.workAngle)))
+   outputFrames.screwBottom.Y    =  0
+   outputFrames.screwBottom.A    =  configCelda.workAngle 
+   ;2-Screw profileA Pose
+   outputFrames.screwProfileA.X  =  -recetaPieza.diametroRosca / 2
+   outputFrames.screwProfileA.Y  =  0
+   outputFrames.screwProfileA.Z  =  recetaPieza.diametroRosca / 2 * laserParameter[$RECIPE.recipeNum].incrementoZ / 100
+   outputFrames.screwProfileA.A  =  angle
+   ;3-Screw profileB Pose
+   outputFrames.screwProfileB.X  =  -recetaPieza.diametroRosca / 2
+   outputFrames.screwProfileB.Y  =  recetaPieza.lTotal - recetaPieza.lHexagono
+   outputFrames.screwProfileB.Z  =  recetaPieza.diametroRosca / 2 * laserParameter[$RECIPE.recipeNum].incrementoZ / 100
+   outputFrames.screwProfileB.A  =  angle
+   ;4-Screw inner Head Pose 
+   outputFrames.screwInnerHead.X =  -((recetaPieza.diametroRosca / 2) + (recetaPieza.diametroRosca / 2) * cos(configCelda.workAngle))
+   outputFrames.screwInnerHead.Y =  recetaPieza.lTotal - recetaPieza.lHexagono - recetaPieza.lHexagono * sin(configCelda.workAngle)
+   outputFrames.screwInnerHead.A =  configCelda.workAngle
+   ;5-Hex Profile Pose
+   outputFrames.screwHex.X       =  -recetaPieza.diametroHexagono / 2
+   outputFrames.screwHex.Y       =  recetaPieza.lTotal - (recetaPieza.lHexagono / 2)
+   outputFrames.screwHex.A       =  angle
+   ;6-Screw Outer HeadPose
+   outputFrames.screwOuterHead.X =  -((recetaPieza.diametroHexagono / 2) - (recetaPieza.diametroHexagono / 2) * cos(configCelda.workAngle))
+   outputFrames.screwOuterHead.Y =  recetaPieza.lTotal 
+   outputFrames.screwOuterHead.A =  -configCelda.workAngle
+   
+   RETURN outputFrames
+ENDFCT
+
+GLOBAL DEFFCT laserSweepFrames posCalcLaserSweepAngledN(recetaPieza:IN, configCelda:IN, angle:IN)
+   DECL RECIPE_TYPE recetaPieza
+   DECL LAYOUT_CONFIG configCelda
+   DECL REAL angle
+   
+   ;-----VAR  DECL---------------------
+   DECL laserSweepFrames outputFrames
+      ;Init
+   outputFrames.screwBottom      =  $NULLFRAME
+   outputFrames.screwProfileA    =  $NULLFRAME
+   outputFrames.screwProfileB    =  $NULLFRAME
+   outputFrames.screwInnerHead   =  $NULLFRAME
+   outputFrames.screwHex         =  $NULLFRAME
+   outputFrames.screwOuterHead   =  $NULLFRAME
+
+   ;1-Screw bottom Pose
+   outputFrames.screwBottom.X    =  -((recetaPieza.diametroRosca / 2) - (recetaPieza.diametroRosca / 2 * cos(configCelda.workAngle)))
+   outputFrames.screwBottom.Y    =  0
+   outputFrames.screwBottom.A    =  configCelda.workAngle 
+   ;2-Screw profileA Pose
+   outputFrames.screwProfileA.X  =  -recetaPieza.diametroRosca / 2
+   outputFrames.screwProfileA.Y  =  0
+   outputFrames.screwProfileA.Z  =  recetaPieza.diametroRosca / 2 * laserParameter[$RECIPE.recipeNum].incrementoZ / 100
+   outputFrames.screwProfileA.A  =  -angle
+   ;3-Screw profileB Pose
+   outputFrames.screwProfileB.X  =  -recetaPieza.diametroRosca / 2
+   outputFrames.screwProfileB.Y  =  recetaPieza.lTotal - recetaPieza.lHexagono
+   outputFrames.screwProfileB.Z  =  recetaPieza.diametroRosca / 2 * laserParameter[$RECIPE.recipeNum].incrementoZ / 100
+   outputFrames.screwProfileB.A  =  -angle
+   ;4-Screw inner Head Pose 
+   outputFrames.screwInnerHead.X =  -((recetaPieza.diametroRosca / 2) + (recetaPieza.diametroRosca / 2) * cos(configCelda.workAngle))
+   outputFrames.screwInnerHead.Y =  recetaPieza.lTotal - recetaPieza.lHexagono - recetaPieza.lHexagono * sin(configCelda.workAngle)
+   outputFrames.screwInnerHead.A =  configCelda.workAngle
+   ;5-Hex Profile Pose
+   outputFrames.screwHex.X       =  -recetaPieza.diametroHexagono / 2
+   outputFrames.screwHex.Y       =  recetaPieza.lTotal - (recetaPieza.lHexagono / 2)
+   outputFrames.screwHex.A       =  -angle
+   ;6-Screw Outer HeadPose
+   outputFrames.screwOuterHead.X =  -((recetaPieza.diametroHexagono / 2) - (recetaPieza.diametroHexagono / 2) * cos(configCelda.workAngle))
+   outputFrames.screwOuterHead.Y =  recetaPieza.lTotal 
+   outputFrames.screwOuterHead.A =  -configCelda.workAngle
+   RETURN outputFrames
+ENDFCT
+
+GLOBAL DEFFCT POS posCalcDry(recetaPieza:IN, configCelda:IN)
+   DECL  LAYOUT_CONFIG  configCelda 
+   DECL  RECIPE_TYPE    recetaPieza
+   DECL  POS returnPos
+   ;------INIT-----------------------------------------
+   returnPos         =  $NULLPOS
+   IF recetaPieza.diametroHexagono > recetaPieza.diametroRosca THEN
+      returnPos.X    =  -recetaPieza.diametroHexagono / 2
+   ELSE
+      returnPos.X    =  -recetaPieza.diametroRosca / 2
+   ENDIF      
+   returnPos.Y       =  -recetaPieza.lTotal
+   
+   RETURN returnPos
+ENDFCT
+
+GLOBAL DEFFCT FRAME posCalcPlaceIND(recetaPieza:IN, configCelda:IN)
+   DECL  LAYOUT_CONFIG  configCelda 
+   DECL  RECIPE_TYPE    recetaPieza
+   DECL  FRAME returnFrame
+   ;------INIT-----------------------------------------
+   returnFrame    =  $NULLFRAME
+   returnFrame.Y  =  -recetaPieza.lOffsetCIND
+   returnFrame.Z  =  recetaPieza.diametroRosca/2 * (2 - cos($LAYOUT.alphaVIND/2))
+   
+   RETURN returnFrame
+   
+ENDFCT
+
+
+
+;Funcion para dejar en el horno de infrarrojos. No se utiliza en nuevo layout.
+GLOBAL DEFFCT FRAME posCalcPlaceIR(recetaPieza:IN, configCelda:IN)                           
+   DECL RECIPE_TYPE recetaPieza
+   DECL LAYOUT_CONFIG configCelda
+   DECL INT i, ix, iy
+   DECL FRAME returnFrame   
+   
+   ;---INIT----------------------------------------------------------;
+   returnFrame =  $NULLFRAME
+   ;-----------------------------------------------------------------;
+   FOR i = 1 TO configCelda.maxPiezasIR                                                
+      IF ($IN[primerBitPresencia + i - 1] == FALSE) THEN                          
+         iy             =     (i - 1) / 4                                  ;Paso de formato byte a matriz 4x4
+         ix             =     (i - 1) - (iy * 4) 
+         iy = 1; !!!!Presencias puenteadas!!!!
+         returnFrame.X  =     -configCelda.lIRXOffset * ix                         
+         returnFrame.Y  =     configCelda.lIRYOffset * iy + recetaPieza.lOffsetCIND    
+         returnFrame.Z  =     (recetaPieza.diametroRosca / 2) + (recetaPieza.diametroRosca / 2) * (cos(configCelda.alphaVind/2))
+         
+         RETURN returnFrame                                                ;Devuelve posicion libre
+      ENDIF                                                       
+   ENDFOR       
+   ;-----------------------------------------------------------------;
+   RETURN {X 9999,Y 9999, Z 9999, A 0, B 0,C 0}                            ;Devuelve frame inalcazable si no se encuentra ninguna posicion libre
+ENDFCT
