@@ -1,4 +1,4 @@
-&ACCESS RVO
+&ACCESS RVO1
 &REL 5
 &PARAM DISKPATH = KRC:\R1\Program\Maintenance
 DEF  C100_maintenanceAxis0 ( )

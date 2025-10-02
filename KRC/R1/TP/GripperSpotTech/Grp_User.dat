@@ -1,4 +1,4 @@
-&ACCESS R3
+&ACCESS R2
 &REL 1
 &COMMENT GripperSpotTech package
 &PARAM KUKATPGRP_VERSION = 5.0

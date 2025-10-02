@@ -1,4 +1,4 @@
-&ACCESS RV$5
+&ACCESS RV$4
 &REL 7
 DEFDAT  $CONFIG
 ;FOLD BASISTECH GLOBALS
@@ -207,7 +207,7 @@ FRAME REF_TOOL={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
 ; TOOL and BASE data
 ;----------------------------------
 BOOL AUTO_IPO_M=FALSE
-BOOL STOPM_FLAG=FALSE
+BOOL STOPM_FLAG=TRUE
 BOOL TOOL_CORR_ON=FALSE
 BOOL TOOL_CORR_W_ON=FALSE
 BOOL BASE_CORR_ON=FALSE
@@ -354,7 +354,7 @@ INT MAX_BASE=32
 DECL FRAME BASE_DATA[32]
 BASE_DATA[1]={X -1389.98,Y 2087.50,Z 163.670013,A 91.0100,B 0.0,C 0.110000}
 BASE_DATA[2]={X 920.000,Y 1360.00,Z 263.000,A 0.0,B 0.0,C 0.0}
-BASE_DATA[3]={X 1300.00,Y -1050.00,Z 228.000,A -5.00000,B 0.0239453614,C 0.703215420}
+BASE_DATA[3]={X 1300.00,Y -1075.00,Z 228.000,A -5.00000,B 0.0239453614,C 0.703215420}
 BASE_DATA[4]={X -368.977509,Y -2620.00,Z 1101.23828,A -90.0000,B -40.0000,C 0.0}
 BASE_DATA[5]={X -445.000,Y -2489.50,Z 446.678,A -89.0500,B -20.0000,C -0.530000}
 BASE_DATA[6]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
@@ -840,7 +840,7 @@ REAL velocidadPintura=0.0300000
 REAL velocidadLaser=0.00800000
 REAL tiempoPintura=1.50000
 REAL tiempoLaser=2.00000
-REAL tiempoSecado=15.0000
+REAL tiempoSecado=12.0000
 REAL tiempoAdelantoLamp=20000.0
 
 ; 
@@ -1104,7 +1104,7 @@ laserParameter[11]={vel1 3.00000,velRot1 50.0000,velSweep 0.01000000,vel2 3.0000
 laserParameter[12]={vel1 3.00000,velRot1 50.0000,velSweep 0.0120000,vel2 3.00000,velRot2 50.0000,tClean1 1.50000,tHex 2.00000,tClean2 2.00000,tClean3 1.50000,incrementoZ 70.0000}
 laserParameter[13]={vel1 3.00000,velRot1 50.0000,velSweep 0.01000000,vel2 3.00000,velRot2 50.0000,tClean1 1.50000,tHex 2.00000,tClean2 2.00000,tClean3 1.50000,incrementoZ 70.0000}
 laserParameter[14]={vel1 3.00000,velRot1 50.0000,velSweep 0.01000000,vel2 3.00000,velRot2 50.0000,tClean1 1.50000,tHex 2.00000,tClean2 2.00000,tClean3 1.50000,incrementoZ 70.0000}
-laserParameter[15]={vel1 3.00000,velRot1 50.0000,velSweep 0.01000000,vel2 3.00000,velRot2 50.0000,tClean1 1.50000,tHex 2.00000,tClean2 2.00000,tClean3 1.50000,incrementoZ 70.0000}
+laserParameter[15]={vel1 3.00000,velRot1 50.0000,velSweep 0.00700000,vel2 3.00000,velRot2 50.0000,tClean1 1.50000,tHex 2.00000,tClean2 2.00000,tClean3 1.50000,incrementoZ 70.0000}
 laserParameter[16]={vel1 3.00000,velRot1 50.0000,velSweep 0.01000000,vel2 3.00000,velRot2 50.0000,tClean1 1.50000,tHex 2.00000,tClean2 2.00000,tClean3 1.50000,incrementoZ 70.0000}
 laserParameter[17]={vel1 3.00000,velRot1 50.0000,velSweep 0.01000000,vel2 3.00000,velRot2 50.0000,tClean1 1.50000,tHex 2.00000,tClean2 2.00000,tClean3 1.50000,incrementoZ 70.0000}
 laserParameter[18]={vel1 3.00000,velRot1 50.0000,velSweep 0.01000000,vel2 3.00000,velRot2 50.0000,tClean1 1.50000,tHex 2.00000,tClean2 2.00000,tClean3 1.50000,incrementoZ 70.0000}
@@ -1236,10 +1236,10 @@ paintParameter[11]={vel1 3.00000,velRot1 400.000,velSweep 0.00700000,vel2 3.0000
 paintParameter[12]={vel1 3.00000,velRot1 400.000,velSweep 0.00700000,vel2 3.00000,velRot2 400.000,tPaint1 1.20000,tHex 1.50000,tPaint2 1.50000,tPaint3 1.40000,incrementoZ 95.0000}
 paintParameter[13]={vel1 3.00000,velRot1 400.000,velSweep 0.00700000,vel2 3.00000,velRot2 400.000,tPaint1 1.20000,tHex 1.50000,tPaint2 1.50000,tPaint3 1.40000,incrementoZ 95.0000}
 paintParameter[14]={vel1 3.00000,velRot1 400.000,velSweep 0.00700000,vel2 3.00000,velRot2 400.000,tPaint1 1.20000,tHex 1.50000,tPaint2 1.50000,tPaint3 1.40000,incrementoZ 95.0000}
-paintParameter[15]={vel1 3.00000,velRot1 400.000,velSweep 0.00700000,vel2 3.00000,velRot2 400.000,tPaint1 1.20000,tHex 1.50000,tPaint2 1.50000,tPaint3 1.40000,incrementoZ 95.0000}
+paintParameter[15]={vel1 3.00000,velRot1 400.000,velSweep 0.0180000,vel2 3.00000,velRot2 400.000,tPaint1 0.200000,tHex 1.50000,tPaint2 1.50000,tPaint3 2.00000,incrementoZ 0.0}
 paintParameter[16]={vel1 3.00000,velRot1 400.000,velSweep 0.00700000,vel2 3.00000,velRot2 400.000,tPaint1 1.20000,tHex 1.50000,tPaint2 1.50000,tPaint3 1.40000,incrementoZ 95.0000}
 paintParameter[17]={vel1 3.00000,velRot1 400.000,velSweep 0.00700000,vel2 3.00000,velRot2 400.000,tPaint1 1.20000,tHex 1.50000,tPaint2 1.50000,tPaint3 1.40000,incrementoZ 95.0000}
-paintParameter[18]={vel1 3.00000,velRot1 400.000,velSweep 0.00700000,vel2 3.00000,velRot2 400.000,tPaint1 1.20000,tHex 1.50000,tPaint2 1.50000,tPaint3 1.40000,incrementoZ 95.0000}
+paintParameter[18]={vel1 3.00000,velRot1 400.000,velSweep 0.0200000,vel2 3.00000,velRot2 400.000,tPaint1 1.20000,tHex 1.50000,tPaint2 1.50000,tPaint3 1.40000,incrementoZ 95.0000}
 paintParameter[19]={vel1 3.00000,velRot1 400.000,velSweep 0.00700000,vel2 3.00000,velRot2 400.000,tPaint1 1.20000,tHex 1.50000,tPaint2 1.50000,tPaint3 1.40000,incrementoZ 95.0000}
 paintParameter[20]={vel1 3.00000,velRot1 400.000,velSweep 0.00700000,vel2 3.00000,velRot2 400.000,tPaint1 1.20000,tHex 1.50000,tPaint2 1.50000,tPaint3 1.40000,incrementoZ 95.0000}
 paintParameter[21]={vel1 3.00000,velRot1 400.000,velSweep 0.00700000,vel2 3.00000,velRot2 400.000,tPaint1 1.20000,tHex 1.50000,tPaint2 1.50000,tPaint3 1.40000,incrementoZ 95.0000}
@@ -1401,7 +1401,7 @@ RECIPE_TCP[2]={X 413.950287,Y 670.396179,Z 143.821548,A 0.0,B -90.0000,C 0.0}
 RECIPE_TCP[3]={X 413.950287,Y 670.396179,Z 143.821548,A 0.0,B -90.0000,C 0.0}
 RECIPE_TCP[20]={X 413.950287,Y 670.396179,Z 143.821548,A 0.0,B -90.0000,C 0.0}
 
-DECL RECIPE_TYPE $RECIPE={lTotal 170.000,lOffsetCBP 54.0000,lOffsetCIND 30.0000,lHexagono 13.0000,diametroHexagono 80.0000,diametroRosca 64.0000,recipeNum 14,PiO {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0},PlO {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+DECL RECIPE_TYPE $RECIPE={lTotal 350.000,lOffsetCBP 110.000,lOffsetCIND 250.000,lHexagono 0.0,diametroHexagono 0.0,diametroRosca 42.0000,recipeNum 15,PiO {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0},PlO {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
 
 
 ;==================================

@@ -1,4 +1,4 @@
-&ACCESS RO2
+&ACCESS RO1
 &REL 1
 &COMMENT LDD package (KSS 8.6.7 or higher)
 &PARAM EDITMASK = *

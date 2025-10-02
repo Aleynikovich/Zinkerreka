@@ -1,4 +1,4 @@
-&ACCESS RV2
+&ACCESS RV1
 &REL 1
 &COMMENT path to test
 &PARAM EDITMASK = *

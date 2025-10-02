@@ -1,4 +1,4 @@
-&ACCESS RVO2
+&ACCESS RVO1
 &REL 26
 DEF posCalcLib ( )
    ;FOLD PROGRAM INFO --------------------------------------------------------
@@ -9,7 +9,7 @@ DEF posCalcLib ( )
    ; Last Modification Date: 18/04/2024
    ; Author:   
    ;           Alexander Kalis
-   ;           Tekniker, C. I�aki Goenaga, 5, 20600, Gipuzkoa
+   ;           Tekniker, C. I?aki Goenaga, 5, 20600, Gipuzkoa
    ;           +34 674 05 15 10
    ;           alexander.kalis@tekniker.es
    ; Last modification Author: 

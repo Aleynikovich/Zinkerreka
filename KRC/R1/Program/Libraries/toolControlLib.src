@@ -1,4 +1,4 @@
-&ACCESS RVO2
+&ACCESS RVO1
 &REL 6
 DEF toolControlLib ()
    ;FOLD PROGRAM INFO --------------------------------------------------------
@@ -73,13 +73,12 @@ GLOBAL DEF autLaserON()
 END
 
 GLOBAL DEF autLaserOFF()
-      bPeticionDisparoLaser = TRUE
+      bPeticionDisparoLaser = FALSE
 END
 
 GLOBAL DEF autPaintON()
    IF NOT dryRun THEN
       bPeticionDisparoPintura = TRUE
-
    ENDIF
 END
 

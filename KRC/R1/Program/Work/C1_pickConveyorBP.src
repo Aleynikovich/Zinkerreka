@@ -1,5 +1,5 @@
-&ACCESS RVP
-&REL 94
+&ACCESS RVO1
+&REL 103
 &PARAM DISKPATH = KRC:\R1\Program\Work
 DEF  C1_pickConveyorBP ( )
    ;FOLD PROGRAM INFO -------------------------------------------------------
@@ -46,7 +46,6 @@ SPTP XhomeConveyor1 WITH $VEL_AXIS[1] = SVEL_JOINT(100.0), $TOOL = STOOL2(FhomeC
 ;ENDFOLD
       petitionPermission(bPetEntradaZonaCintaBP,bPermisoEntradaBPArriba)  
    ;ENDFOLD
-   C251_T1_PosAct()
    ;FOLD INIT pick
       $TOOL          =  TOOL_DATA[1]
       $BASE          =  BASE_DATA[1]

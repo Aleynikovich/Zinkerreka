@@ -1,4 +1,4 @@
-&ACCESS R3
+&ACCESS R2
 &COMMENT HandlerOnRobotFault
 DEF  IR_STOPM ( )
 ;-----------------------------------
