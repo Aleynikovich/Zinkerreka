@@ -56,7 +56,7 @@ SPTP XhomeConveyor1 WITH $VEL_AXIS[1] = SVEL_JOINT(100.0), $TOOL = STOOL2(FhomeC
    
    SPTP pickPos : $RECIPE.PiO : zOffsetFrame C_SPL                   ;Punto de aproximación de cogida
    petitionPermission(bPetEntradaCogerCintaBP,bPermisoEntradaBPAbajo)
-   SLIN pickPos : mechanicalOffset : $RECIPE.PiO                     ;Punto de cogida
+   SLIN pickPos : mechanicalOffset : $RECIPE.PiO                     ;Punto de cogidas
    SLIN pickPos : pickYOffset : mechanicalOffset : $RECIPE.PiO       ;Punto de cogida con movimiento lateral
    autGripperClose()                                                 ;Robot en posicion de cogida. Espera permiso salida y pinza cerrada                    ;
    SLIN_REL {Z 300}  C_SPL                                           ;Punto de aproximación de cogida relativo Z+
