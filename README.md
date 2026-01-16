@@ -160,7 +160,7 @@ Service, setup, and teaching programs:
 - **C252_TeachingPointsC2** - Teaching points for C2 cycle
 - **C253_RESET_CICLO** - Cycle reset
 
-## 📋 Configuration Files
+## Configuration Files
 
 ### ConfigMon.ini
 
@@ -183,7 +183,7 @@ Tracks all file modifications with:
 - File change status (Changed/None)
 - Change history and timestamps
 
-## 👨‍💻 Development Guidelines
+## Development Guidelines
 
 ### Code Style
 
