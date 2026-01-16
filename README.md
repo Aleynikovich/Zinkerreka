@@ -2,7 +2,7 @@
 
 This repository contains KUKA Robot Language (KRL) programs and configuration files for the R1 LASER robot system at Erreka S. COOP. The project is managed using KUKA WorkVisual 6.0 and includes production programs, maintenance routines, and service utilities.
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Overview](#overview)
 - [Repository Structure](#repository-structure)
@@ -15,7 +15,7 @@ This repository contains KUKA Robot Language (KRL) programs and configuration fi
 - [Authors](#authors)
 - [License](#license)
 
-## 🤖 Overview
+## Overview
 
 This repository manages the robot control programs for a KUKA KR C industrial robot (R1 LASER) running KUKA System Software (KSS) version 8.6.11.567. The robot is equipped with:
 
@@ -25,7 +25,7 @@ This repository manages the robot control programs for a KUKA KR C industrial ro
 - Safety diagnostics (v3.1.7.65)
 - EtherCAT diagnostics (v1.0.4.160)
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```
 Zinkerreka/
@@ -53,7 +53,7 @@ Zinkerreka/
 └── README.md                     # This file
 ```
 
-## 💻 System Information
+## System Information
 
 **Robot Controller**: KUKA KR C  
 **System Software**: V8.6.11.567  
@@ -72,7 +72,7 @@ Zinkerreka/
 - **LoadDataDetermination** v7.2.4.228 - Load data calculation
 - **UserTech** v4.0.16.2571 - User technology package
 
-## 🔧 Prerequisites
+## Prerequisites
 
 To work with this repository, you need:
 
@@ -92,7 +92,7 @@ To work with this repository, you need:
    - KUKA robot operation and safety procedures
    - Industrial robot safety standards
 
-## 🚀 Getting Started
+## Getting Started
 
 ### 1. Clone the Repository
 
@@ -117,14 +117,14 @@ cd Zinkerreka
 
 ### 4. Deploy Programs
 
-⚠️ **Safety Warning**: Always follow proper safety procedures when deploying programs to an industrial robot. Ensure the work area is clear and all safety systems are active.
+ **Safety Warning**: Always follow proper safety procedures when deploying programs to an industrial robot. Ensure the work area is clear and all safety systems are active.
 
 1. Select the program files to deploy
 2. Use WorkVisual's deploy function
 3. Verify program integrity on the controller
 4. Test programs in T1 mode before production use
 
-## 📂 Program Categories
+##  Program Categories
 
 ### Work Programs (`KRC/R1/Program/Work/`)
 
@@ -204,7 +204,7 @@ Tracks all file modifications with:
 
 ### Safety Considerations
 
-⚠️ **Critical**: All programs must comply with:
+ **Critical**: All programs must comply with:
 - ISO 10218 (Robot Safety Standards)
 - Local safety regulations
 - KUKA safety guidelines
@@ -219,7 +219,7 @@ Always test new programs in T1 mode with reduced speed before production use.
 3. **T2 Testing**: Automatic mode with reduced speed
 4. **Production**: Full automatic operation (only after approval)
 
-## 👥 Authors
+## Authors
 
 **Primary Developer**:  
 Alexander Kalis  
@@ -230,7 +230,7 @@ alexander.kalis@tekniker.es
 **Customer**:  
 Erreka S. COOP
 
-## 📄 License
+## License
 
 This repository contains proprietary robot control programs developed for Erreka S. COOP. 
 
@@ -240,7 +240,7 @@ For licensing inquiries, please contact the repository owner or Erreka S. COOP.
 
 ---
 
-## 🔍 Additional Information
+## Additional Information
 
 ### Support and Issues
 
