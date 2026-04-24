@@ -1,4 +1,5 @@
 &ACCESS RVP
+&REL 3
 &COMMENT HANDLER on external automatic
 DEF cell( )
    ;EXT EXAMPLE1 ( )
@@ -38,8 +39,12 @@ DEF cell( )
    ;ENDFOLD (AUTOEXT INI)
    LOOP
       ;ENDFOLD
+      ;Check recipenum   
+      WHILE ($RECIPE.recipenum == 0)
+      MSGNOTIFY("Submit no arrancado o programa cargado es 0")
+      WAIT SEC 10
+      ENDWHILE
       SWITCH Program_PLC ; Select with Programnumber
-         
          CASE 1
             Program_Number=1
             C1_pickConveyorBP()

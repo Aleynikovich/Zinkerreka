@@ -79,6 +79,7 @@ END
 GLOBAL DEF autPaintON()
    IF NOT dryRun THEN
       bPeticionDisparoPintura = TRUE
+
    ENDIF
 END
 

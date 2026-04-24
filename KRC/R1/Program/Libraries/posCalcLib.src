@@ -1,5 +1,5 @@
 &ACCESS RVO1
-&REL 26
+&REL 31
 DEF posCalcLib ( )
    ;FOLD PROGRAM INFO --------------------------------------------------------
    ; Program: posCalcLib
@@ -48,7 +48,7 @@ GLOBAL DEFFCT laserSweepFrames posCalcLaserSweep(recetaPieza:IN, configCelda:IN)
    ;1-Screw bottom Pose
    outputFrames.screwBottom.X    =  -((recetaPieza.diametroRosca / 2) - (recetaPieza.diametroRosca / 2 * cos(configCelda.workAngle)))
    outputFrames.screwBottom.Y    =  0
-   outputFrames.screwBottom.A    =  configCelda.workAngle 
+   outputFrames.screwBottom.A    =  configCelda.workAngle + laserParameter[$RECIPE.recipeNum].bottonAngleOffset
    ;2-Screw profileA Pose
    outputFrames.screwProfileA.X  =  -recetaPieza.diametroRosca / 2
    outputFrames.screwProfileA.Y  =  0
@@ -70,7 +70,7 @@ GLOBAL DEFFCT laserSweepFrames posCalcLaserSweep(recetaPieza:IN, configCelda:IN)
    ;6-Screw Outer HeadPose
    outputFrames.screwOuterHead.X =  -((recetaPieza.diametroHexagono / 2) - (recetaPieza.diametroHexagono / 2) * cos(configCelda.workAngle))
    outputFrames.screwOuterHead.Y =  recetaPieza.lTotal 
-   outputFrames.screwOuterHead.A =  -configCelda.workAngle
+   outputFrames.screwOuterHead.A =  -configCelda.workAngle + laserParameter[$RECIPE.recipeNum].headAngleOffset
    
    
    RETURN outputFrames
@@ -94,7 +94,7 @@ GLOBAL DEFFCT laserSweepFrames posCalcLaserSweepAngledP(recetaPieza:IN, configCe
    ;1-Screw bottom Pose
    outputFrames.screwBottom.X    =  -((recetaPieza.diametroRosca / 2) - (recetaPieza.diametroRosca / 2 * cos(configCelda.workAngle)))
    outputFrames.screwBottom.Y    =  0
-   outputFrames.screwBottom.A    =  configCelda.workAngle 
+   outputFrames.screwBottom.A    =  configCelda.workAngle +  laserParameter[$RECIPE.recipeNum].bottonAngleOffset
    ;2-Screw profileA Pose
    outputFrames.screwProfileA.X  =  -recetaPieza.diametroRosca / 2
    outputFrames.screwProfileA.Y  =  0
@@ -116,7 +116,7 @@ GLOBAL DEFFCT laserSweepFrames posCalcLaserSweepAngledP(recetaPieza:IN, configCe
    ;6-Screw Outer HeadPose
    outputFrames.screwOuterHead.X =  -((recetaPieza.diametroHexagono / 2) - (recetaPieza.diametroHexagono / 2) * cos(configCelda.workAngle))
    outputFrames.screwOuterHead.Y =  recetaPieza.lTotal 
-   outputFrames.screwOuterHead.A =  -configCelda.workAngle
+   outputFrames.screwOuterHead.A =  -configCelda.workAngle + laserParameter[$RECIPE.recipeNum].headAngleOffset
    
    RETURN outputFrames
 ENDFCT
@@ -138,17 +138,17 @@ GLOBAL DEFFCT laserSweepFrames posCalcLaserSweepAngledN(recetaPieza:IN, configCe
 
    ;1-Screw bottom Pose
    outputFrames.screwBottom.X    =  -((recetaPieza.diametroRosca / 2) - (recetaPieza.diametroRosca / 2 * cos(configCelda.workAngle)))
-   outputFrames.screwBottom.Y    =  0
-   outputFrames.screwBottom.A    =  configCelda.workAngle 
+   outputFrames.screwBottom.Y    =  -14
+   outputFrames.screwBottom.A    =  configCelda.workAngle + laserParameter[$RECIPE.recipeNum].bottonAngleOffset
    ;2-Screw profileA Pose
    outputFrames.screwProfileA.X  =  -recetaPieza.diametroRosca / 2
-   outputFrames.screwProfileA.Y  =  0
-   outputFrames.screwProfileA.Z  =  recetaPieza.diametroRosca / 2 * laserParameter[$RECIPE.recipeNum].incrementoZ / 100
+   outputFrames.screwProfileA.Y  =  offset_pintura
+   outputFrames.screwProfileA.Z  =  recetaPieza.diametroRosca / 2 * (laserParameter[$RECIPE.recipeNum].incrementoZ / 100)
    outputFrames.screwProfileA.A  =  -angle
    ;3-Screw profileB Pose
    outputFrames.screwProfileB.X  =  -recetaPieza.diametroRosca / 2
    outputFrames.screwProfileB.Y  =  recetaPieza.lTotal - recetaPieza.lHexagono
-   outputFrames.screwProfileB.Z  =  recetaPieza.diametroRosca / 2 * laserParameter[$RECIPE.recipeNum].incrementoZ / 100
+   outputFrames.screwProfileB.Z  =  recetaPieza.diametroRosca / 2 * (laserParameter[$RECIPE.recipeNum].incrementoZ / 100)
    outputFrames.screwProfileB.A  =  -angle
    ;4-Screw inner Head Pose 
    outputFrames.screwInnerHead.X =  -((recetaPieza.diametroRosca / 2) + (recetaPieza.diametroRosca / 2) * cos(configCelda.workAngle))
@@ -160,10 +160,156 @@ GLOBAL DEFFCT laserSweepFrames posCalcLaserSweepAngledN(recetaPieza:IN, configCe
    outputFrames.screwHex.A       =  -angle
    ;6-Screw Outer HeadPose
    outputFrames.screwOuterHead.X =  -((recetaPieza.diametroHexagono / 2) - (recetaPieza.diametroHexagono / 2) * cos(configCelda.workAngle))
-   outputFrames.screwOuterHead.Y =  recetaPieza.lTotal 
-   outputFrames.screwOuterHead.A =  -configCelda.workAngle
+   outputFrames.screwOuterHead.Y =  recetaPieza.lTotal-28 
+   outputFrames.screwOuterHead.A =  -configCelda.workAngle +  laserParameter[$RECIPE.recipeNum].headAngleOffset
    RETURN outputFrames
 ENDFCT
+
+GLOBAL DEFFCT laserSweepFrames posCalcPaintSweep(recetaPieza:IN, configCelda:IN)
+   DECL RECIPE_TYPE recetaPieza
+   DECL LAYOUT_CONFIG configCelda
+   
+   ;-----VAR  DECL---------------------
+   DECL laserSweepFrames outputFrames
+   ;Init
+   outputFrames.screwBottom      =  $NULLFRAME
+   outputFrames.screwProfileA    =  $NULLFRAME
+   outputFrames.screwProfileB    =  $NULLFRAME
+   outputFrames.screwInnerHead   =  $NULLFRAME
+   outputFrames.screwHex         =  $NULLFRAME
+   outputFrames.screwOuterHead   =  $NULLFRAME
+
+   ;1-Screw bottom Pose
+   outputFrames.screwBottom.X    =  -((recetaPieza.diametroRosca / 2) - (recetaPieza.diametroRosca / 2 * cos(configCelda.workAngle)))
+   outputFrames.screwBottom.Y    =  0
+   outputFrames.screwBottom.A    =  configCelda.workAngle + paintParameter[$RECIPE.recipeNum].bottonAngleOffset
+   ;2-Screw profileA Pose
+   outputFrames.screwProfileA.X  =  -recetaPieza.diametroRosca / 2
+   outputFrames.screwProfileA.Y  =  0
+   outputFrames.screwProfileA.Z  =  recetaPieza.diametroRosca / 2 * PaintParameter[$RECIPE.recipeNum].incrementoZ / 100
+   outputFrames.screwProfileA.A  =  0
+   ;3-Screw profileB Pose
+   outputFrames.screwProfileB.X  =  -recetaPieza.diametroRosca / 2
+   outputFrames.screwProfileB.Y  =  recetaPieza.lTotal - recetaPieza.lHexagono
+   outputFrames.screwProfileB.Z  =  recetaPieza.diametroRosca / 2 * PaintParameter[$RECIPE.recipeNum].incrementoZ / 100
+   outputFrames.screwProfileB.A  =  0
+   ;4-Screw inner Head Pose 
+   outputFrames.screwInnerHead.X =  -((recetaPieza.diametroRosca / 2) + (recetaPieza.diametroRosca / 2) * cos(configCelda.workAngle))
+   outputFrames.screwInnerHead.Y =  recetaPieza.lTotal - recetaPieza.lHexagono - recetaPieza.lHexagono * sin(configCelda.workAngle)
+   outputFrames.screwInnerHead.A =  configCelda.workAngle
+   ;5-Hex Profile Pose
+   outputFrames.screwHex.X       =  -recetaPieza.diametroHexagono / 2
+   outputFrames.screwHex.Y       =  recetaPieza.lTotal - (recetaPieza.lHexagono / 2)
+   outputFrames.screwHex.A       =  0
+   ;6-Screw Outer HeadPose
+   outputFrames.screwOuterHead.X =  -((recetaPieza.diametroHexagono / 2) - (recetaPieza.diametroHexagono / 2) * cos(configCelda.workAngle))
+   outputFrames.screwOuterHead.Y =  recetaPieza.lTotal 
+   outputFrames.screwOuterHead.A =  -configCelda.workAngle + paintParameter[$RECIPE.recipeNum].headAngleOffset
+   
+   
+   RETURN outputFrames
+ENDFCT
+
+GLOBAL DEFFCT laserSweepFrames posCalcPaintSweepAngledP(recetaPieza:IN, configCelda:IN, angle:IN)
+   DECL RECIPE_TYPE recetaPieza
+   DECL LAYOUT_CONFIG configCelda
+   DECL REAL angle
+   
+   ;-----VAR  DECL---------------------
+   DECL laserSweepFrames outputFrames
+      ;Init
+   outputFrames.screwBottom      =  $NULLFRAME
+   outputFrames.screwProfileA    =  $NULLFRAME
+   outputFrames.screwProfileB    =  $NULLFRAME
+   outputFrames.screwInnerHead   =  $NULLFRAME
+   outputFrames.screwHex         =  $NULLFRAME
+   outputFrames.screwOuterHead   =  $NULLFRAME
+
+   ;1-Screw bottom Pose
+   outputFrames.screwBottom.X    =  -((recetaPieza.diametroRosca / 2) - (recetaPieza.diametroRosca / 2 * cos(configCelda.workAngle)))
+   outputFrames.screwBottom.Y    =  0
+   outputFrames.screwBottom.A    =  configCelda.workAngle + paintParameter[$RECIPE.recipeNum].bottonAngleOffset
+
+   ;2-Screw profileA Pose
+   outputFrames.screwProfileA.X  =  -recetaPieza.diametroRosca / 2
+   outputFrames.screwProfileA.Y  =  0
+   outputFrames.screwProfileA.Z  =  recetaPieza.diametroRosca / 2 * paintParameter[$RECIPE.recipeNum].incrementoZ / 100
+   outputFrames.screwProfileA.A  =  angle
+
+   ;3-Screw profileB Pose
+   outputFrames.screwProfileB.X  =  -recetaPieza.diametroRosca / 2
+   outputFrames.screwProfileB.Y  =  recetaPieza.lTotal - recetaPieza.lHexagono
+   outputFrames.screwProfileB.Z  =  recetaPieza.diametroRosca / 2 * paintParameter[$RECIPE.recipeNum].incrementoZ / 100
+   outputFrames.screwProfileB.A  =  angle
+
+   ;4-Screw inner Head Pose 
+   outputFrames.screwInnerHead.X =  -((recetaPieza.diametroRosca / 2) + (recetaPieza.diametroRosca / 2) * cos(configCelda.workAngle))
+   outputFrames.screwInnerHead.Y =  recetaPieza.lTotal - recetaPieza.lHexagono - recetaPieza.lHexagono * sin(configCelda.workAngle)
+   outputFrames.screwInnerHead.A =  configCelda.workAngle
+
+   ;5-Hex Profile Pose
+   outputFrames.screwHex.X       =  -recetaPieza.diametroHexagono / 2
+   outputFrames.screwHex.Y       =  recetaPieza.lTotal - (recetaPieza.lHexagono / 2)
+   outputFrames.screwHex.A       =  angle
+
+   ;6-Screw Outer HeadPose
+   outputFrames.screwOuterHead.X =  -((recetaPieza.diametroHexagono / 2) - (recetaPieza.diametroHexagono / 2 * cos(configCelda.workAngle)))
+   outputFrames.screwOuterHead.Y =  recetaPieza.lTotal 
+   outputFrames.screwOuterHead.A =  -configCelda.workAngle + paintParameter[$RECIPE.recipeNum].headAngleOffset
+   
+   RETURN outputFrames
+ENDFCT
+
+GLOBAL DEFFCT laserSweepFrames posCalcPaintSweepAngledN(recetaPieza:IN, configCelda:IN, angle:IN)
+   DECL RECIPE_TYPE recetaPieza
+   DECL LAYOUT_CONFIG configCelda
+   DECL REAL angle
+   
+   ;-----VAR  DECL---------------------
+   DECL laserSweepFrames outputFrames
+      ;Init
+   outputFrames.screwBottom      =  $NULLFRAME
+   outputFrames.screwProfileA    =  $NULLFRAME
+   outputFrames.screwProfileB    =  $NULLFRAME
+   outputFrames.screwInnerHead   =  $NULLFRAME
+   outputFrames.screwHex         =  $NULLFRAME
+   outputFrames.screwOuterHead   =  $NULLFRAME
+
+   ;1-Screw bottom Pose
+   outputFrames.screwBottom.X    =  -((recetaPieza.diametroRosca / 2) - (recetaPieza.diametroRosca / 2 * cos(configCelda.workAngle)))
+   outputFrames.screwBottom.Y    =  -14
+   outputFrames.screwBottom.A    =  configCelda.workAngle + paintParameter[$RECIPE.recipeNum].bottonAngleOffset
+
+   ;2-Screw profileA Pose
+   outputFrames.screwProfileA.X  =  -recetaPieza.diametroRosca / 2
+   outputFrames.screwProfileA.Y  =  offset_pintura
+   outputFrames.screwProfileA.Z  =  recetaPieza.diametroRosca / 2 * paintParameter[$RECIPE.recipeNum].incrementoZ / 100
+   outputFrames.screwProfileA.A  =  -angle
+
+   ;3-Screw profileB Pose
+   outputFrames.screwProfileB.X  =  -recetaPieza.diametroRosca / 2
+   outputFrames.screwProfileB.Y  =  recetaPieza.lTotal - recetaPieza.lHexagono
+   outputFrames.screwProfileB.Z  =  recetaPieza.diametroRosca / 2 * paintParameter[$RECIPE.recipeNum].incrementoZ / 100
+   outputFrames.screwProfileB.A  =  -angle
+
+   ;4-Screw inner Head Pose 
+   outputFrames.screwInnerHead.X =  -((recetaPieza.diametroRosca / 2) + (recetaPieza.diametroRosca / 2) * cos(configCelda.workAngle))
+   outputFrames.screwInnerHead.Y =  recetaPieza.lTotal - recetaPieza.lHexagono - recetaPieza.lHexagono * sin(configCelda.workAngle)
+   outputFrames.screwInnerHead.A =  configCelda.workAngle
+
+   ;5-Hex Profile Pose
+   outputFrames.screwHex.X       =  -recetaPieza.diametroHexagono / 2
+   outputFrames.screwHex.Y       =  recetaPieza.lTotal - (recetaPieza.lHexagono / 2)
+   outputFrames.screwHex.A       =  -angle
+
+   ;6-Screw Outer HeadPose
+   outputFrames.screwOuterHead.X =  -((recetaPieza.diametroHexagono / 2) - (recetaPieza.diametroHexagono / 2 * cos(configCelda.workAngle)))
+   outputFrames.screwOuterHead.Y =  recetaPieza.lTotal-28 
+   outputFrames.screwOuterHead.A =  -configCelda.workAngle + paintParameter[$RECIPE.recipeNum].headAngleOffset
+
+   RETURN outputFrames
+ENDFCT
+
 
 GLOBAL DEFFCT POS posCalcDry(recetaPieza:IN, configCelda:IN)
    DECL  LAYOUT_CONFIG  configCelda 
@@ -193,8 +339,6 @@ GLOBAL DEFFCT FRAME posCalcPlaceIND(recetaPieza:IN, configCelda:IN)
    RETURN returnFrame
    
 ENDFCT
-
-
 
 ;Funcion para dejar en el horno de infrarrojos. No se utiliza en nuevo layout.
 GLOBAL DEFFCT FRAME posCalcPlaceIR(recetaPieza:IN, configCelda:IN)                           

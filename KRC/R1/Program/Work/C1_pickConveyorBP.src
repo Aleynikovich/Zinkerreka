@@ -1,7 +1,11 @@
 &ACCESS RVO1
-&REL 103
+&REL 145
 &PARAM DISKPATH = KRC:\R1\Program\Work
 DEF  C1_pickConveyorBP ( )
+
+DECL POS Aprox_pick,pick_lateral,pick
+
+
    ;FOLD PROGRAM INFO -------------------------------------------------------
       ; Program: C0_pickConveyorBP
       ; Description:
@@ -25,6 +29,7 @@ DEF  C1_pickConveyorBP ( )
       ;ENDFOLD (BASISTECH INI)
       ;FOLD USER INI
          autGripperOpen()   ;Peticion apertura pinza 
+         
          ;Make your modifications here
          
       ;ENDFOLD (USER INI)
@@ -36,7 +41,10 @@ DEF  C1_pickConveyorBP ( )
       ;ENDFOLD
       SPTP XHOME WITH $VEL_AXIS[1] = SVEL_JOINT(100.0), $TOOL = STOOL2(FHOME), $BASE = SBASE(FHOME.BASE_NO), $IPO_MODE = SIPO_MODE(FHOME.IPO_FRAME), $LOAD = SLOAD(FHOME.TOOL_NO), $ACC_AXIS[1] = SACC_JOINT(PDEFAULT), $APO = SAPO_PTP(PDEFAULT), $GEAR_JERK[1] = SGEAR_JERK(PDEFAULT), $COLLMON_TOL_PRO[1] = USE_CM_PRO_VALUES(0)
    ;ENDFOLD
-   
+ 
+ petitionPermission(bPetEntradaZonaCintaBP,bPermisoEntradaBPArriba)    
+ petitionPermission(bPetEntradaCogerCintaBP,bPermisoEntradaBPAbajo)
+
    ;FOLD Path to BP conveyor
 ;FOLD SPTP homeConveyor1 CONT Vel=100 % PDAT10 Tool[1]:pintxoEstatico Base[1]:pickBP ;%{PE}
 ;FOLD Parameters ;%{h}
@@ -44,7 +52,7 @@ DEF  C1_pickConveyorBP ( )
 ;ENDFOLD
 SPTP XhomeConveyor1 WITH $VEL_AXIS[1] = SVEL_JOINT(100.0), $TOOL = STOOL2(FhomeConveyor1), $BASE = SBASE(FhomeConveyor1.BASE_NO), $IPO_MODE = SIPO_MODE(FhomeConveyor1.IPO_FRAME), $LOAD = SLOAD(FhomeConveyor1.TOOL_NO), $ACC_AXIS[1] = SACC_JOINT(PPDAT10), $APO = SAPO_PTP(PPDAT10), $GEAR_JERK[1] = SGEAR_JERK(PPDAT10), $COLLMON_TOL_PRO[1] = USE_CM_PRO_VALUES(0) C_Spl
 ;ENDFOLD
-      petitionPermission(bPetEntradaZonaCintaBP,bPermisoEntradaBPArriba)  
+    ;petitionPermission(bPetEntradaZonaCintaBP,bPermisoEntradaBPArriba)    
    ;ENDFOLD
    ;FOLD INIT pick
       $TOOL          =  TOOL_DATA[1]
@@ -52,12 +60,20 @@ SPTP XhomeConveyor1 WITH $VEL_AXIS[1] = SVEL_JOINT(100.0), $TOOL = STOOL2(FhomeC
       $IPO_MODE      =  #BASE
       pickPos        =  $NULLPOS : posCalcPickBP($RECIPE, $LAYOUT)
       pickYOffset.Y  =  5
+      Aprox_pick= pickPos : $RECIPE.PiO : zOffsetFrame
+      pick_lateral= pickPos : mechanicalOffset : $RECIPE.PiO
+      pick=pickPos : pickYOffset : mechanicalOffset : $RECIPE.PiO 
    ;ENDFOLD
    
-   SPTP pickPos : $RECIPE.PiO : zOffsetFrame C_SPL                   ;Punto de aproximación de cogida
-   petitionPermission(bPetEntradaCogerCintaBP,bPermisoEntradaBPAbajo)
-   SLIN pickPos : mechanicalOffset : $RECIPE.PiO                     ;Punto de cogida
-   SLIN pickPos : pickYOffset : mechanicalOffset : $RECIPE.PiO       ;Punto de cogida con movimiento lateral
+  
+
+   ;PTP pickPos : $RECIPE.PiO : zOffsetFrame C_PTP 
+   SPTP Aprox_pick C_SPL    ;Punto de aproximación de cogida
+   ;petitionPermission(bPetEntradaCogerCintaBP,bPermisoEntradaBPAbajo)
+   ;LIN pickPos : mechanicalOffset : $RECIPE.PiO       C_DIS C_DIS             ;Punto de cogida
+   SLIN pick_lateral C_SPL
+   ;LIN pickPos : pickYOffset : mechanicalOffset : $RECIPE.PiO  
+   SLIN pick    ;Punto de cogida con movimiento lateral
    autGripperClose()                                                 ;Robot en posicion de cogida. Espera permiso salida y pinza cerrada                    ;
    SLIN_REL {Z 300}  C_SPL                                           ;Punto de aproximación de cogida relativo Z+
    ;FOLD Path to home

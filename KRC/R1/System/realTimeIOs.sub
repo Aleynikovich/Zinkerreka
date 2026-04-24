@@ -1,24 +1,24 @@
 &ACCESS RVP
-&REL 1
+&REL 2
 &COMMENT USER specified PLC program
 DEF  realTimeIOs ( )
    LOOP
-      
+      $RECIPE.recipeNum = ByNumeroReceta
+      IF ($RECIPE.recipeNum > 0) THEN
+      ;Carga parametos de receta desde PLC
       $RECIPE.diametroHexagono = ByDiametroHexagono
       $RECIPE.diametroRosca = ByDiametroRosca
       $RECIPE.lHexagono = ByLongitudHexagono
       $RECIPE.lTotal = wLongitudTotal
       $RECIPE.lOffsetCBP = wLongitudOffsetCintaBP
       $RECIPE.lOffsetCIND = wLongitudOffsetIND
-      $RECIPE.recipeNum = ByNumeroReceta
       
-      $RECIPE.PiO.X = ByPickOffsetX
-      $RECIPE.PiO.Y = ByPickOffsetY
-      $RECIPE.PiO.Z = ByPickOffsetZ
       
-      $RECIPE.PlO.X = ByPlaceOffsetX
-      $RECIPE.PlO.Y = ByPlaceOffsetY
-      $RECIPE.PlO.Z = ByPlaceOffsetZ
-      
+      ;Carga datos de offset en pick(Base1) y place(Base5)
+      $RECIPE.PiO = RECIPE_DATA[$RECIPE.recipeNum].PiO
+      $RECIPE.PlO = RECIPE_DATA[$RECIPE.recipeNum].PlO
+      WAIT SEC 0.1
+      ENDIF
+
    ENDLOOP
 END

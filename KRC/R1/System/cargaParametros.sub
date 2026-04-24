@@ -1,0 +1,116 @@
+&ACCESS RVP
+&REL 2
+&COMMENT USER specified PLC program
+DEF cargaParametros( )
+   ; Declaraciones de variables locales
+   INT i
+   INT bestIndex
+   REAL minDiff
+   REAL currentDiff
+   REAL deltaDiam
+   REAL deltaLen
+   
+   ; Factores de peso para la búsqueda
+   REAL pesoDiametro
+   REAL pesoLongitud
+   
+   ; Configuración de pesos: 
+   ; El diametro importa 100 veces más que la longitud para decidir similitud
+   pesoDiametro = 100.0 
+   pesoLongitud = 1.0
+   
+   LOOP
+      
+      ; Comprobamos si la receta actual ($RECIPE) es diferente a la guardada
+      ; Esto indica que es una receta nueva o modificada desde el HMI
+      IF ($RECIPE.recipeNum > 0) THEN
+         IF (RECIPE_DATA[$RECIPE.recipeNum].recipeNum <> $RECIPE.recipeNum) AND ($RECIPE.recipeNum > 19)   THEN ; O una comparacion mas robusta
+            
+            ; 1. Guardamos los datos básicos de la nueva receta en la BD
+            RECIPE_DATA[$RECIPE.recipeNum] = $RECIPE
+            
+            ; Inicializamos variables para la busqueda
+            bestIndex = 0
+            minDiff = 1000000.0 ; Un numero muy alto para empezar
+            
+            ; 2. Buscamos la receta más parecida (Nearest Neighbor)
+            FOR i = 1 TO 128
+               
+               ; Solo comparamos con recetas que existan (recipeNum > 0) 
+               ; y que NO sean la misma que acabamos de guardar
+               IF (RECIPE_DATA[i].recipeNum > 0) AND (i <> $RECIPE.recipeNum) THEN
+                  
+                  ; Calculamos valor absoluto de las diferencias
+                  deltaDiam = ABS($RECIPE.diametroRosca - RECIPE_DATA[i].diametroRosca)
+                  deltaLen  = ABS($RECIPE.lTotal - RECIPE_DATA[i].lTotal)
+                  
+                  ; Calculamos la puntuación de diferencia
+                  ; Fórmula: (DiferenciaDiametro * 100) + (DiferenciaLongitud * 1)
+                  currentDiff = (deltaDiam * pesoDiametro) + (deltaLen * pesoLongitud)
+                  
+                  ; Si encontramos una diferencia menor a la registrada, actualizamos
+                  IF currentDiff < minDiff THEN
+                     minDiff = currentDiff
+                     bestIndex = i
+                  ENDIF
+                  
+               ENDIF
+            ENDFOR
+            
+            ; 3. Si encontramos un candidato válido, copiamos sus parámetros
+            IF bestIndex > 0 THEN
+               
+               ; Copiamos los parámetros operativos de la mejor coincidencia
+               paintParameter[$RECIPE.recipeNum] = paintParameter[bestIndex]
+               laserParameter[$RECIPE.recipeNum] = laserParameter[bestIndex]
+               C2LaserOffset[$RECIPE.recipeNum]  = C2LaserOffset[bestIndex]
+               
+               ; Opcional: Copiar offsets si tiene sentido, o mantener los calculados
+               RECIPE_DATA[$RECIPE.recipeNum].Pio = RECIPE_DATA[bestIndex].PiO
+               RECIPE_DATA[$RECIPE.recipeNum].PlO = RECIPE_DATA[bestIndex].PlO
+               
+               ; Mensaje de usuario (Opcional, para debug)
+               MsgNotify("Parametros copiados de receta: %1", "CargaParams", bestIndex)
+               
+            ENDIF
+            
+         ENDIF
+      ENDIF
+      
+      WAIT SEC 0.1 
+      
+      ;Filtrado si el operario mete un angulo muy grande a la hora de hacer la cabeza o la parte inferior del pintado
+      ;el maximos es 10 o -10
+      IF   ABS(paintParameter[$RECIPE.recipeNum].bottonAngleOffset)>10 THEN
+            paintParameter[$RECIPE.recipeNum].bottonAngleOffset=0;
+      ENDIF
+      
+      IF   ABS(paintParameter[$RECIPE.recipeNum].headAngleOffset)>10 THEN
+            paintParameter[$RECIPE.recipeNum].headAngleOffset=0;
+      ENDIF
+      
+      ;Filtrado si el operario mete un angulo muy grande a la hora de hacer la cabeza o la parte inferior del laser
+      ;el maximos es 10 o -10
+      IF   ABS(laserParameter[$RECIPE.recipeNum].headAngleOffset)>10 THEN
+            laserParameter[$RECIPE.recipeNum].headAngleOffset=0;
+      ENDIF
+      
+      IF   ABS(laserParameter[$RECIPE.recipeNum].bottonAngleOffset)>10 THEN
+            laserParameter[$RECIPE.recipeNum].bottonAngleOffset=0;
+      ENDIF
+      
+      ;Filtrado si el operario mete un angulo muy grande a la hora de hacer la trayectoria AB del laser
+      ;el maximos es 10 o -10
+      IF   ABS(angle_barrido_laserAB)>10 THEN
+            angle_barrido_laserAB=0;
+      ENDIF
+      
+      ;Filtrado si el operario mete un angulo muy grande a la hora de hacer la trayectoria AB del pintado
+      ;el maximos es 10 o -10
+      IF   ABS(angle_barrido_pinturaAB)>10 THEN
+            angle_barrido_pinturaAB=0;
+      ENDIF
+      
+   ENDLOOP
+   
+END
