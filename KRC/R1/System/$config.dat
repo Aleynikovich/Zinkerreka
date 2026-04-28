@@ -836,7 +836,7 @@ BOOL RESET_CICLO=FALSE
 INT CANCEL_PROGRAM=0 ; 
 INT INIT_PROGRAM=0
 SIGNAL Program_Number $OUT[110]  TO $OUT[117]
-;Parametros de trabajo
+;Parametros de trabajo TODO: Eliminar si no se usa
 REAL velocidadPintura=0.0300000
 REAL velocidadLaser=0.00800000
 REAL tiempoPintura=1.50000
@@ -867,14 +867,9 @@ SIGNAL bPermisoEntradaBPAbajo $IN[141]
 SIGNAL bPermisoEntradaLamparas $IN[144]
 SIGNAL bPermisoEntradaIND $IN[145]
 
-SIGNAL bManPinzaAbierta $IN[396]
-SIGNAL bManPinzaCerrada $IN[397]
-SIGNAL bManMotorOn $IN[398]
-SIGNAL bManMotorOff $IN[399]
-SIGNAL bManLaserOn $IN[400]
-SIGNAL bManLaserOff $IN[401]
+SIGNAL wLongitudTotal $IN[148]  TO $IN[163]
+SIGNAL wLongitudOffsetCintaBP $IN[164]  TO $IN[179]
 
-;Bytes
 SIGNAL ByLongitudHexagono $IN[180]  TO $IN[187]
 SIGNAL ByDiametroRosca $IN[188]  TO $IN[195]
 SIGNAL ByPickOffsetX $IN[196]  TO $IN[203]
@@ -887,12 +882,21 @@ SIGNAL ByPlaceOffsetX $IN[244]  TO $IN[251]
 SIGNAL ByPlaceOffsetY $IN[252]  TO $IN[259]
 SIGNAL ByPlaceOffsetZ $IN[260]  TO $IN[267]
 SIGNAL ByPresenciaPieza $IN[268]  TO $IN[275]
+
+SIGNAL wLongitudOffsetIND $IN[324]  TO $IN[339]
 SIGNAL ByNPasadasLaser $IN[340]  TO $IN[355]
 
+;TODO: eliminar no usados
+SIGNAL bManPinzaAbierta $IN[396]
+SIGNAL bManPinzaCerrada $IN[397]
+SIGNAL bManMotorOn $IN[398]
+SIGNAL bManMotorOff $IN[399]
+SIGNAL bManLaserOn $IN[400]
+SIGNAL bManLaserOff $IN[401]
+
 ;Words
-SIGNAL wLongitudTotal $IN[148]  TO $IN[163]
-SIGNAL wLongitudOffsetCintaBP $IN[164]  TO $IN[179]
-SIGNAL wLongitudOffsetIND $IN[324]  TO $IN[339]
+
+
 
 ;==================================
 ; OUT SIGNALS
@@ -951,7 +955,7 @@ STRUC paintParameters REAL vel1,velRot1,velSweep,vel2,velRot2,tPaint1,tHex,tPain
 ; Puntos teaching offsets globales
 ;==================================
 
-;FOLD Puntos offset laser
+;FOLD Puntos offset laser TODO:Eliminar tras actualizacion
 DECL BOOL dryRun=FALSE
 ;C2_laserStation------------------
 DECL laserSweepOffsets C2LaserOffset[128]
@@ -1093,7 +1097,7 @@ C2LaserOffset[128]={sOHO {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0},sHO {X 0.0,Y 0.0,
 ;--------------------------------
 ;ENDFOLD
 
-;FOLD Parametrizacion laser
+;FOLD Parametrizacion laser TODO:Eliminar tras actualizacion
 DECL laserParameters laserParameter[128]
 
 laserParameter[1]={vel1 3.00000,velRot1 50.0000,velSweep 0.01000000,vel2 3.00000,velRot2 50.0000,tClean1 1.50000,tHex 2.00000,tClean2 2.00000,tClean3 1.50000,incrementoZ 70.0000,bottonAngleOffset 0.0,headAngleOffset 0.0}
@@ -1225,7 +1229,7 @@ laserParameter[126]={vel1 3.00000,velRot1 50.0000,velSweep 0.01000000,vel2 3.000
 laserParameter[127]={vel1 3.00000,velRot1 50.0000,velSweep 0.01000000,vel2 3.00000,velRot2 50.0000,tClean1 1.50000,tHex 2.00000,tClean2 2.00000,tClean3 1.50000,incrementoZ 70.0000,bottonAngleOffset 0.0,headAngleOffset 0.0}
 laserParameter[128]={vel1 3.00000,velRot1 50.0000,velSweep 0.01000000,vel2 3.00000,velRot2 50.0000,tClean1 1.50000,tHex 2.00000,tClean2 2.00000,tClean3 1.50000,incrementoZ 70.0000,bottonAngleOffset 0.0,headAngleOffset 0.0}
 ;ENDFOLD
-;FOLD Parametros pintura
+;FOLD Parametros pintura TODO:Eliminar tras actualizacion
 DECL paintParameters paintParameter[128]
 
 paintParameter[1]={vel1 3.00000,velRot1 400.000,velSweep 0.00700000,vel2 3.00000,velRot2 400.000,tPaint1 1.20000,tHex 1.50000,tPaint2 1.50000,tPaint3 1.40000,incrementoZ 95.0000,bottonAngleOffset 0.0,headAngleOffset 0.0}
@@ -1361,31 +1365,11 @@ paintParameter[128]={vel1 3.00000,velRot1 400.000,velSweep 0.00700000,vel2 3.000
 ; Vars unicas
 ;==================================  
 DECL CONST POS $NULLPOS={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0,S 0,T 0}
-DECL INT primerBitPresencia=272
-DECL INT primerBitMemoria=172
-DECL BOOL posicionesTest[8]
-posicionesTest[1]=FALSE
-posicionesTest[2]=FALSE
-posicionesTest[3]=FALSE
-posicionesTest[4]=FALSE
-posicionesTest[5]=FALSE
-posicionesTest[6]=FALSE
-posicionesTest[7]=FALSE
-posicionesTest[8]=FALSE
 
-;DECL BOOL memoriasPresencia[4,2]
-;memoriasPresencia[1,1] = False
-;memoriasPresencia[2,1] = False
-;memoriasPresencia[3,1] = False
-;memoriasPresencia[4,1] = False
-;memoriasPresencia[1,2] = False
-;memoriasPresencia[2,2] = False
-;memoriasPresencia[3,2] = False
-;memoriasPresencia[4,2] = False
 
 
 ;==================================
-; Recetas
+; FOLD Recetas TODO:Eliminar tras actualizacion
 ;==================================
 DECL RECIPE_TYPE $RECIPE={lTotal 675.000,lOffsetCBP 60.0000,lOffsetCIND 567.000,lHexagono 0.0,diametroHexagono 0.0,diametroRosca 56.0000,recipeNum 30,PiO {X 4.67000,Y 0.0,Z -3.00000,A -1.45000,B -0.750000,C -0.0700000},PlO {X 7.67000,Y 0.0,Z -4.00000,A -2.12000,B 20.6500,C -0.150000}}
 
@@ -1519,7 +1503,7 @@ RECIPE_DATA[126]={lTotal 0.0,lOffsetCBP 0.0,lOffsetCIND 0.0,lHexagono 0.0,diamet
 RECIPE_DATA[127]={lTotal 0.0,lOffsetCBP 0.0,lOffsetCIND 0.0,lHexagono 0.0,diametroHexagono 0.0,diametroRosca 0.0,recipeNum 0,PiO {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0},PlO {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
 RECIPE_DATA[128]={lTotal 0.0,lOffsetCBP 0.0,lOffsetCIND 0.0,lHexagono 0.0,diametroHexagono 0.0,diametroRosca 0.0,recipeNum 0,PiO {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0},PlO {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
 
-
+;ENDFOLD
 ;==================================
 ; Configuraciones de celda
 ;==================================
